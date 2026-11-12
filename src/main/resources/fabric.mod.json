@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "A small network graph HUD.",
+  "authors": [
+    "WilyFox"
+  ],
+  "contact": {
+    "sources": "https://github.com/WilyFoxM/Lacmus",
+    "issues": "https://github.com/WilyFoxM/Lacmus/issues"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "ru.wilyfox.lacmus.fabric.LacmusFabric"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader}",
+    "minecraft": "${minecraft}",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,35 @@
+pluginManagement {
+    repositories {
+        maven("https://maven.fabricmc.net/") { name = "Fabric" }
+        maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    plugins {
+        // Fabric Loom for Minecraft 26.x: official names, no remapping.
+        id("net.fabricmc.fabric-loom") version "1.17.21"
+    }
+}
+
+plugins {
+    id("dev.kikugie.stonecutter") version "0.9.8"
+}
+
+stonecutter {
+    create(rootProject) {
+        // Nodes are `{minecraft}-{loader}`; each loader has its own build script.
+        fun match(minecraft: String, vararg loaders: String) {
+            for (loader in loaders) {
+                version("$minecraft-$loader", minecraft).buildscript("build.$loader.gradle.kts")
+            }
+        }
+
+        match("26.2", "fabric")
+        vcsVersion = "26.2-fabric"
+    }
+}
+
+// Pure-Java metrics core, shared by every node; no Minecraft or loader on its classpath.
+include("core")
+
+rootProject.name = "Lacmus"
