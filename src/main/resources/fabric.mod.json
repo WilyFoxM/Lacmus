@@ -12,6 +12,7 @@
     "issues": "https://github.com/WilyFoxM/Lacmus/issues"
   },
   "license": "MIT",
+  "icon": "assets/lacmus/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
