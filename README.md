@@ -14,7 +14,34 @@
 
 A small client-side network graph HUD for Minecraft, in the spirit of `net_graph`.
 
-Lacmus is in early development and has no features yet.
+Lacmus is in early development.
+
+## What it shows
+
+Two lines in the top-left corner, hidden while the F3 screen is open:
+
+```
+fps 144  rtt 42 ms ±3 ms
+in 12 kB/s 40/s  out 1.2 kB/s 20/s
+```
+
+- **fps**: frames per second, as the game counts them.
+- **rtt**: the round trip of a ping request to the server and back, timed where the packets
+  enter and leave the network layer, so a client stutter does not show up as network lag.
+  **±** is the jitter: how much one round trip differs from the previous one, on average over
+  the last 16.
+- **in / out**: bytes per second over the connection, after compression and encryption but
+  without TCP/IP headers, and packets per second (a bundle of packets counts as one). Both are
+  averaged over the last second.
+- **—**: the value is unknown. In single player there is no round trip and no bytes on a wire.
+
+To time the round trip, Lacmus sends two of the game's own ping requests per second while the
+HUD is shown on a server. The game itself sends them only while its network chart is open; then
+Lacmus times the game's requests and sends none.
+
+## Controls
+
+**Show or hide Lacmus** in Controls → Lacmus. It has no key by default.
 
 ## Requirements
 
@@ -27,3 +54,9 @@ Lacmus is in early development and has no features yet.
 The code is under the [MIT](LICENSE) license. The mod icon and the banner are
 simplified recolors of a Minecraft texture, which belongs to Mojang, and are not covered
 by that license.
+
+## Attributions
+
+- [NetGraph](https://modrinth.com/mod/netgraph) by denny4 (MIT), version 1.0.0+1.21.8: the idea
+  of counting bytes and packets with handlers in the connection's Netty pipeline. Lacmus has its
+  own implementation.

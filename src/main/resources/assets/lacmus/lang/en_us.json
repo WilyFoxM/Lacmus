@@ -1,1 +1,15 @@
-{}
+{
+  "key.category.lacmus.main": "Lacmus",
+  "key.lacmus.toggle": "Show or hide Lacmus",
+  "hud.lacmus.fps": "fps",
+  "hud.lacmus.rtt": "rtt",
+  "hud.lacmus.in": "in",
+  "hud.lacmus.out": "out",
+  "hud.lacmus.unit.ms": "%s ms",
+  "hud.lacmus.jitter": "±%s ms",
+  "hud.lacmus.unit.bytes": "%s B/s",
+  "hud.lacmus.unit.kilobytes": "%s kB/s",
+  "hud.lacmus.unit.megabytes": "%s MB/s",
+  "hud.lacmus.unit.packets": "%s/s",
+  "hud.lacmus.unknown": "—"
+}
