@@ -23,9 +23,10 @@ final class PacketTap extends ChannelDuplexHandler {
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     if (msg instanceof Packet<?>) {
-      probe.inboundPacket();
+      long now = System.nanoTime();
+      probe.inboundPacket(now);
       if (msg instanceof ClientboundPongResponsePacket pong) {
-        probe.pongReceived(pong.time(), System.nanoTime());
+        probe.pongReceived(pong.time(), now);
       }
     }
     super.channelRead(ctx, msg);

@@ -39,6 +39,11 @@ public final class NetFormat {
     return Double.isNaN(value) ? null : adaptive(Math.max(0, value));
   }
 
+  /** Seconds from milliseconds; one decimal below 10 s. */
+  public static String seconds(double millis) {
+    return Double.isNaN(millis) ? null : adaptive(Math.max(0, millis) / 1000);
+  }
+
   /** A whole count per second. */
   public static String perSecond(double value) {
     return Double.isNaN(value) ? null : whole(Math.max(0, value));

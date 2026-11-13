@@ -33,6 +33,12 @@ in 12 kB/s 40/s  out 1.2 kB/s 20/s
 - **in / out**: bytes per second over the connection, after compression and encryption but
   without TCP/IP headers, and packets per second (a bundle of packets counts as one). Both are
   averaged over the last second.
+- **rtt stall**: on a server, nothing has arrived for more than 1.5 seconds, so the ping
+  requests are not answered either; it shows for how long. After 5 seconds it also counts down
+  to the game's own 30-second timeout. The server answers ping requests even while it is busy,
+  so a stall points at the connection rather than at a slow server.
+- **no data**: the same pause in single player, where there is no round trip.
+- During a stall or a pause the whole first line turns red.
 - **—**: the value is unknown. In single player there is no round trip and no bytes on a wire.
 
 To time the round trip, Lacmus sends two of the game's own ping requests per second while the
@@ -60,3 +66,6 @@ by that license.
 - [NetGraph](https://modrinth.com/mod/netgraph) by denny4 (MIT), version 1.0.0+1.21.8: the idea
   of counting bytes and packets with handlers in the connection's Netty pipeline. Lacmus has its
   own implementation.
+- [Where Is My Packet?](https://github.com/greneboy/wimp) by greneboy (MIT): the idea of showing
+  how long no packet has arrived, with a countdown to the timeout. Lacmus has its own
+  implementation.
