@@ -15,6 +15,7 @@ bin/
 /netgraph-*.jar
 
 # Local development settings
+/local.*.gradle
 .idea/
 .vscode/
 *.iml

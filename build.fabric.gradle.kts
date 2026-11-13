@@ -32,11 +32,14 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 loom {
-    runConfigs.all {
-        // One run directory for every node.
+    runConfigs.matching { it.name == "client" || it.name == "server" }.configureEach {
+        // One run directory for every node; other run configurations keep their own.
         runDirectory = rootProject.file("run")
     }
 }
+
+// Optional local build additions, kept outside Git.
+rootProject.file("local.fabric.gradle").takeIf { it.exists() }?.let { apply(from = it) }
 
 tasks.processResources {
     val props =
