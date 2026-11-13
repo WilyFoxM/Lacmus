@@ -11,5 +11,9 @@
   "hud.lacmus.unit.kilobytes": "%s кБ/с",
   "hud.lacmus.unit.megabytes": "%s МБ/с",
   "hud.lacmus.unit.packets": "%s/с",
+  "hud.lacmus.stall": "нет данных",
+  "hud.lacmus.unit.seconds": "%s с",
+  "hud.lacmus.rtt_stall": "нет ответа %s с",
+  "hud.lacmus.timeout": "таймаут через %s с",
   "hud.lacmus.unknown": "—"
 }

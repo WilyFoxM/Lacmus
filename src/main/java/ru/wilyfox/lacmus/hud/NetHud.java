@@ -15,7 +15,11 @@ import ru.wilyfox.lacmus.core.NetProbe;
  * in 12 kB/s 40/s  out 1.2 kB/s 20/s
  * </pre>
  *
- * The lines are rebuilt once per client tick; a frame only draws them.
+ * While nothing arrives from a server, the round trip says for how long, and later how long until
+ * the game gives up: {@code rtt stall 8.0 s timeout in 22 s}. In single player, where there is no
+ * round trip, the pause is shown on its own: {@code rtt — no data 8.0 s}.
+ *
+ * <p>The lines are rebuilt once per client tick; a frame only draws them.
  */
 public final class NetHud {
   private static final String KEY = "hud.lacmus.";
@@ -34,11 +38,25 @@ public final class NetHud {
   public void update(Font font, int fps, NetProbe probe, boolean memoryConnection) {
     MutableComponent line = label("fps").append(" ").append(value(NetFormat.whole(fps)));
     line.append(GAP).append(label("rtt")).append(" ");
-    String rtt = NetFormat.millis(probe.rttMillis());
-    line.append(rtt == null ? unknown() : value("unit.ms", rtt));
-    String jitter = NetFormat.millis(probe.jitterMillis());
-    if (jitter != null) {
-      line.append(" ").append(value("jitter", jitter));
+    String stall = NetFormat.seconds(probe.stallMillis());
+    if (stall != null && !memoryConnection) {
+      // On a server, the round trip is not answered either: say so instead of an old value.
+      line.append(value("rtt_stall", stall));
+      String timeout = NetFormat.seconds(probe.timeoutInMillis());
+      if (timeout != null) {
+        line.append(" ").append(value("timeout", timeout));
+      }
+    } else {
+      String rtt = NetFormat.millis(probe.rttMillis());
+      line.append(rtt == null ? unknown() : value("unit.ms", rtt));
+      String jitter = NetFormat.millis(probe.jitterMillis());
+      if (jitter != null) {
+        line.append(" ").append(value("jitter", jitter));
+      }
+      if (stall != null) {
+        // Single player has no round trip; the pause is shown on its own.
+        line.append(GAP).append(label("stall")).append(" ").append(value("unit.seconds", stall));
+      }
     }
     top = line;
 

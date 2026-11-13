@@ -19,6 +19,20 @@ public final class NetProbe {
   /** Round trips kept for the average and the jitter. */
   public static final int RTT_SAMPLES = 16;
 
+  /**
+   * Silence shorter than this is normal: a healthy server sends its time once a second, and pongs
+   * to the probe's requests arrive twice a second.
+   */
+  public static final long STALL_NANOS = 1_500_000_000L;
+
+  /** From this much silence on, the time left before the client gives up is shown too. */
+  public static final long TIMEOUT_WARNING_NANOS = 5_000_000_000L;
+
+  /** The game client disconnects after this long without incoming data. */
+  public static final long CLIENT_TIMEOUT_NANOS = 30_000_000_000L;
+
+  private static final long NONE = Long.MIN_VALUE;
+
   private static final int PENDING_PINGS = 16;
   private static final int RTT_QUEUE = 64;
   private static final int RATE_SAMPLES = 64;
@@ -28,6 +42,7 @@ public final class NetProbe {
   private final SingleWriterCounter outboundBytes = new SingleWriterCounter();
   private final SingleWriterCounter inboundPackets = new SingleWriterCounter();
   private final SingleWriterCounter outboundPackets = new SingleWriterCounter();
+  private final PublishedLong lastInboundNanos = new PublishedLong(NONE);
   private final PendingPings pending = new PendingPings(PENDING_PINGS);
   private final SpscLongQueue roundTrips = new SpscLongQueue(RTT_QUEUE);
 
@@ -51,8 +66,10 @@ public final class NetProbe {
     outboundBytes.add(bytes);
   }
 
-  public void inboundPacket() {
+  /** A packet from the server was read at {@code nanos}. */
+  public void inboundPacket(long nanos) {
     inboundPackets.add(1);
+    lastInboundNanos.set(nanos);
   }
 
   public void outboundPacket() {
@@ -119,9 +136,36 @@ public final class NetProbe {
     return rttFresh() ? rttMillis.meanAbsDelta() : Double.NaN;
   }
 
+  /**
+   * How long nothing has arrived from the server, in milliseconds, once that is longer than {@link
+   * #STALL_NANOS}; otherwise, and before the first packet, NaN.
+   */
+  public double stallMillis() {
+    long silence = silenceNanos();
+    return silence >= STALL_NANOS ? silence / 1e6 : Double.NaN;
+  }
+
+  /**
+   * Milliseconds left before the game client times out, once the silence is longer than {@link
+   * #TIMEOUT_WARNING_NANOS}; otherwise NaN. Only meaningful for a connection over a network.
+   */
+  public double timeoutInMillis() {
+    long silence = silenceNanos();
+    if (silence < TIMEOUT_WARNING_NANOS) {
+      return Double.NaN;
+    }
+    return Math.max(0, CLIENT_TIMEOUT_NANOS - silence) / 1e6;
+  }
+
   /** Round trips dropped because the client thread fell behind. */
   public long droppedRoundTrips() {
     return roundTrips.dropped();
+  }
+
+  private long silenceNanos() {
+    long last = lastInboundNanos.get();
+    // A packet read after this update's clock reading counts as no silence.
+    return last == NONE ? -1 : Math.max(0, now - last);
   }
 
   private boolean rttFresh() {

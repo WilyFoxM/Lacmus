@@ -11,5 +11,9 @@
   "hud.lacmus.unit.kilobytes": "%s kB/s",
   "hud.lacmus.unit.megabytes": "%s MB/s",
   "hud.lacmus.unit.packets": "%s/s",
+  "hud.lacmus.stall": "no data",
+  "hud.lacmus.unit.seconds": "%s s",
+  "hud.lacmus.rtt_stall": "stall %s s",
+  "hud.lacmus.timeout": "timeout in %s s",
   "hud.lacmus.unknown": "—"
 }

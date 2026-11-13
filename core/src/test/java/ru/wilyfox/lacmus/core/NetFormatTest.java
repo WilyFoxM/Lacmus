@@ -42,6 +42,14 @@ class NetFormatTest {
   }
 
   @Test
+  void secondsFromMillis() {
+    assertNull(NetFormat.seconds(Double.NaN));
+    assertEquals("2.4", NetFormat.seconds(2_400));
+    assertEquals("22", NetFormat.seconds(22_000));
+    assertEquals("0.0", NetFormat.seconds(0));
+  }
+
+  @Test
   void countsAreWhole() {
     assertEquals("40", NetFormat.perSecond(39.7));
   }
