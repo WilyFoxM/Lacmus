@@ -128,4 +128,16 @@ class NetProbeTest {
     probe.update(4_999 * MS);
     assertTrue(Double.isNaN(probe.stallMillis()));
   }
+
+  @Test
+  void slowTickRateRaisesTheStallThreshold() {
+    NetProbe probe = new NetProbe();
+    probe.tickingState(5, false);
+    // Time packets every 4 s: a 3 s pause is normal, a 6.5 s one is not.
+    probe.inboundPacket(0);
+    probe.update(3_000 * MS);
+    assertTrue(Double.isNaN(probe.stallMillis()));
+    probe.update(6_500 * MS);
+    assertEquals(6_500, probe.stallMillis(), 1e-9);
+  }
 }

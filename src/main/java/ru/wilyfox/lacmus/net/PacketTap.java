@@ -4,14 +4,17 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
+import net.minecraft.network.protocol.game.ClientboundTickingStatePacket;
 import net.minecraft.network.protocol.ping.ClientboundPongResponsePacket;
 import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket;
 import ru.wilyfox.lacmus.core.NetProbe;
 
 /**
  * Sits right before the game's packet handler: counts decoded packets both ways (a bundle counts as
- * one) and stamps ping requests and pongs on the network thread. Stamping here, rather than in the
- * game's handlers, keeps the wait for the client thread out of the round trip.
+ * one) and stamps ping requests, pongs and the server's time packets on the network thread.
+ * Stamping here, rather than in the game's handlers, keeps the wait for the client thread out of
+ * the round trip.
  */
 final class PacketTap extends ChannelDuplexHandler {
   private final NetProbe probe;
@@ -27,6 +30,10 @@ final class PacketTap extends ChannelDuplexHandler {
       probe.inboundPacket(now);
       if (msg instanceof ClientboundPongResponsePacket pong) {
         probe.pongReceived(pong.time(), now);
+      } else if (msg instanceof ClientboundSetTimePacket time) {
+        probe.timeSync(time.gameTime(), now);
+      } else if (msg instanceof ClientboundTickingStatePacket state) {
+        probe.tickingState(state.tickRate(), state.isFrozen());
       }
     }
     super.channelRead(ctx, msg);

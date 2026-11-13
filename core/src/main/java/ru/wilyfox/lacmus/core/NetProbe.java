@@ -45,6 +45,7 @@ public final class NetProbe {
   private final PublishedLong lastInboundNanos = new PublishedLong(NONE);
   private final PendingPings pending = new PendingPings(PENDING_PINGS);
   private final SpscLongQueue roundTrips = new SpscLongQueue(RTT_QUEUE);
+  private final ServerTicks ticks = new ServerTicks();
 
   // Reader side.
   private final RateMeter inboundByteRate = new RateMeter(RATE_WINDOW_NANOS, RATE_SAMPLES);
@@ -89,11 +90,22 @@ public final class NetProbe {
     }
   }
 
+  /** A time packet with {@code gameTime} was read at {@code nanos}. */
+  public void timeSync(long gameTime, long nanos) {
+    ticks.timeSync(gameTime, nanos);
+  }
+
+  /** The server's ticking state: its target tick rate and whether it is frozen. */
+  public void tickingState(float tickRate, boolean frozen) {
+    ticks.tickingState(tickRate, frozen);
+  }
+
   // ---- Reader side --------------------------------------------------------------------------
 
   /** Takes in everything the network side recorded up to now. */
   public void update(long nanos) {
     now = nanos;
+    ticks.update(nanos);
     inboundByteRate.sample(nanos, inboundBytes.get());
     outboundByteRate.sample(nanos, outboundBytes.get());
     inboundPacketRate.sample(nanos, inboundPackets.get());
@@ -138,11 +150,24 @@ public final class NetProbe {
 
   /**
    * How long nothing has arrived from the server, in milliseconds, once that is longer than {@link
-   * #STALL_NANOS}; otherwise, and before the first packet, NaN.
+   * #stallThresholdNanos()}; otherwise, and before the first packet, NaN.
    */
   public double stallMillis() {
     long silence = silenceNanos();
-    return silence >= STALL_NANOS ? silence / 1e6 : Double.NaN;
+    return silence >= stallThresholdNanos() ? silence / 1e6 : Double.NaN;
+  }
+
+  /**
+   * {@link #STALL_NANOS}, or one and a half intervals between the server's time packets when the
+   * server ticks so slowly that they come less often than that.
+   */
+  public long stallThresholdNanos() {
+    return Math.max(STALL_NANOS, ticks.syncIntervalNanos() * 3 / 2);
+  }
+
+  /** The server's tick rate, from the time packets it sends anyway. */
+  public ServerTicks ticks() {
+    return ticks;
   }
 
   /**

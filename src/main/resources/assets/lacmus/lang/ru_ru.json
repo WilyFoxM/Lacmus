@@ -15,5 +15,11 @@
   "hud.lacmus.unit.seconds": "%s с",
   "hud.lacmus.rtt_stall": "нет ответа %s с",
   "hud.lacmus.timeout": "таймаут через %s с",
+  "hud.lacmus.tps": "tps",
+  "hud.lacmus.tps.estimate": "≈%s",
+  "hud.lacmus.tps.estimate_of": "≈%s из %s",
+  "hud.lacmus.tps.frozen": "заморожен",
+  "hud.lacmus.tps.paused": "пауза",
+  "hud.lacmus.tps.late": "опаздывает %s с",
   "hud.lacmus.unknown": "—"
 }

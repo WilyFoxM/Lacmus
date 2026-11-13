@@ -50,6 +50,15 @@ class NetFormatTest {
   }
 
   @Test
+  void tickRates() {
+    assertNull(NetFormat.ticks(Double.NaN));
+    assertEquals("19.9", NetFormat.ticks(19.94));
+    assertEquals("0.0", NetFormat.ticks(-1));
+    assertEquals("10", NetFormat.tickRate(10));
+    assertEquals("2.5", NetFormat.tickRate(2.5F));
+  }
+
+  @Test
   void countsAreWhole() {
     assertEquals("40", NetFormat.perSecond(39.7));
   }
