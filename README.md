@@ -18,11 +18,12 @@ Lacmus is in early development.
 
 ## What it shows
 
-Two lines in the top-left corner, hidden while the F3 screen is open:
+Three lines in the top-left corner, hidden while the F3 screen is open:
 
 ```
 fps 144  rtt 42 ms ±3 ms
 in 12 kB/s 40/s  out 1.2 kB/s 20/s
+tps ≈19.9
 ```
 
 - **fps**: frames per second, as the game counts them.
@@ -38,7 +39,13 @@ in 12 kB/s 40/s  out 1.2 kB/s 20/s
   to the game's own 30-second timeout. The server answers ping requests even while it is busy,
   so a stall points at the connection rather than at a slow server.
 - **no data**: the same pause in single player, where there is no round trip.
-- During a stall or a pause the whole first line turns red.
+- **tps**: an estimate of how many ticks a second the server runs, from the time it sends once
+  every 20 ticks anyway, averaged over 5 seconds. When the server aims at a rate other than 20
+  (`/tick rate`), it is shown too: `≈9.9 of 10`. **frozen** when the server froze its ticks,
+  **late** when its next time is overdue, **paused** in a paused single-player game. Unknown
+  during a stall: then the connection, not the server, decides what arrives.
+- A line that reports a problem turns red: the first line during a stall or a pause, the tps line
+  when the server falls below 90 % of its rate or its time is late.
 - **—**: the value is unknown. In single player there is no round trip and no bytes on a wire.
 
 To time the round trip, Lacmus sends two of the game's own ping requests per second while the

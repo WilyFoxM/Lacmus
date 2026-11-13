@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.resources.Identifier;
 import ru.wilyfox.lacmus.core.NetProbe;
+import ru.wilyfox.lacmus.core.NetView;
 import ru.wilyfox.lacmus.hud.NetHud;
 import ru.wilyfox.lacmus.net.NetTaps;
 import ru.wilyfox.lacmus.net.Pinger;
@@ -67,7 +68,8 @@ public final class LacmusClient {
     current.update(now);
     if (visible) {
       boolean memory = listener.getConnection().isMemoryConnection();
-      HUD.update(minecraft.font, minecraft.getFps(), current, memory);
+      NetView view = NetView.of(current, minecraft.getFps(), memory, minecraft.isPaused());
+      HUD.update(minecraft.font, view);
     }
   }
 

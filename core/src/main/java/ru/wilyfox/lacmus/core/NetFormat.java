@@ -44,6 +44,16 @@ public final class NetFormat {
     return Double.isNaN(millis) ? null : adaptive(Math.max(0, millis) / 1000);
   }
 
+  /** Ticks per second with one decimal. */
+  public static String ticks(double value) {
+    return Double.isNaN(value) ? null : String.format(Locale.ROOT, "%.1f", Math.max(0, value));
+  }
+
+  /** A tick rate: whole when it is whole, otherwise one decimal. */
+  public static String tickRate(float rate) {
+    return rate == Math.rint(rate) ? whole(rate) : String.format(Locale.ROOT, "%.1f", rate);
+  }
+
   /** A whole count per second. */
   public static String perSecond(double value) {
     return Double.isNaN(value) ? null : whole(Math.max(0, value));
