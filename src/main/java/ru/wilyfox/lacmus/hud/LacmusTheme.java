@@ -11,6 +11,9 @@ public final class LacmusTheme {
   /** Metric names. */
   public static final int LABEL = 0xD1495B;
 
+  /** A whole line that reports a problem, such as a stalled connection. */
+  public static final int ALARM = 0xD1495B;
+
   /** Base colour handed to text drawing; parts override it. */
   public static final int TEXT_ARGB = 0xFF000000 | VALUE;
 

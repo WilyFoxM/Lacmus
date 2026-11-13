@@ -38,6 +38,7 @@ in 12 kB/s 40/s  out 1.2 kB/s 20/s
   to the game's own 30-second timeout. The server answers ping requests even while it is busy,
   so a stall points at the connection rather than at a slow server.
 - **no data**: the same pause in single player, where there is no round trip.
+- During a stall or a pause the whole first line turns red.
 - **—**: the value is unknown. In single player there is no round trip and no bytes on a wire.
 
 To time the round trip, Lacmus sends two of the game's own ping requests per second while the

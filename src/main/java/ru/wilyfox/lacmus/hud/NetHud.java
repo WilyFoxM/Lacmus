@@ -58,7 +58,8 @@ public final class NetHud {
         line.append(GAP).append(label("stall")).append(" ").append(value("unit.seconds", stall));
       }
     }
-    top = line;
+    // A stall is a problem: the whole line turns to the alarm colour.
+    top = stall == null ? line : Component.literal(line.getString()).withColor(LacmusTheme.ALARM);
 
     MutableComponent traffic = label("in").append(" ");
     traffic.append(bytes(probe.inboundBytesPerSecond(), memoryConnection)).append(" ");
