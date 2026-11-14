@@ -219,4 +219,39 @@ class ServerTicksTest {
     }
     assertEquals(10, ticks.ticksPerSecond(), 0.15);
   }
+
+  @Test
+  void lastHeldUpPacketIsNotTakenForPunctual() {
+    // Packets sent at 0 and 1 s are held until 1.43 s, so the one sent at 1 s is 0.43 s late and
+    // is the most punctual of the old ones. The packets from 2 s on are on time, the first of them
+    // 10 ms late: three seconds on, it is just short of the shortest span and only the held-up
+    // packets are old enough to start from.
+    ServerTicks ticks = new ServerTicks();
+    at(ticks, 0, 1_430);
+    at(ticks, 20, 1_430);
+    for (int i = 2; i <= 10; i++) {
+      double estimate = at(ticks, i * 20L, i * 1000L + (i == 2 ? 10 : 0));
+      int second = i;
+      assertTrue(
+          Double.isNaN(estimate) || Math.abs(estimate - 20) < 0.1,
+          () -> "at " + second + " s: " + estimate);
+    }
+    assertEquals(20, ticks.ticksPerSecond(), 0.1);
+  }
+
+  @Test
+  void manyPacketsHeldTogetherDoNotLookLikeAFastServer() {
+    // A long stall: the packets sent from 0 to 5 s all arrive at 6.5 s, then on time.
+    ServerTicks ticks = new ServerTicks();
+    for (int i = 0; i <= 5; i++) {
+      at(ticks, i * 20L, 6_500);
+    }
+    for (int i = 7; i <= 14; i++) {
+      double estimate = at(ticks, i * 20L, i * 1000L);
+      int second = i;
+      assertTrue(
+          Double.isNaN(estimate) || Math.abs(estimate - 20) < 0.01,
+          () -> "at " + second + " s: " + estimate);
+    }
+  }
 }

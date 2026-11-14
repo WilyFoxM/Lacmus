@@ -10,8 +10,10 @@ package ru.wilyfox.lacmus.core;
  * <p>A packet can arrive late but never early: a proxy switching servers, or a stall, holds some
  * back and then delivers them together with the next ones. Measured from a held-up packet, the
  * estimate would overshoot. So the start of the measurement is the oldest packet that is not
- * noticeably later than the others, judged against the server's own schedule at its target rate.
- * The newest packet is always the end: a late newest packet does mean late ticks.
+ * noticeably later than the most punctual packet of the window, judged against the server's own
+ * schedule at its target rate. A server that really ticks faster than its target, which makes every
+ * newer packet look earlier, is told apart by its shorter steps between packets. The newest packet
+ * is always the end: a late newest packet does mean late ticks.
  *
  * <p>The tick rate the server aims at and whether it is frozen come from its ticking-state packet.
  *
@@ -44,6 +46,12 @@ public final class ServerTicks {
 
   private static final int SAMPLES = 32;
 
+  /** Packets that arrive within this share of their expected step arrived together. */
+  private static final double BUNCHED_SHARE = 0.1;
+
+  /** A median step below this share of the expected step means the server ticks faster. */
+  private static final double FASTER_SHARE = 0.8;
+
   /** A time packet later than this share of its interval counts as late. */
   public static final double LATE_SHARE = 0.5;
 
@@ -56,6 +64,7 @@ public final class ServerTicks {
   // Reader side.
   private final long[] gameTimes = new long[SAMPLES];
   private final long[] arrivals = new long[SAMPLES];
+  private final double[] stepScratch = new double[SAMPLES];
   private int start;
   private int count;
   private double estimate = Double.NaN;
@@ -116,25 +125,63 @@ public final class ServerTicks {
     int end = index(count - 1);
     double rate = targetTickRate() > 0 ? targetTickRate() : DEFAULT_TICK_RATE;
     long minSpan = MIN_SPAN_INTERVALS * syncIntervalNanos();
-    // How late each candidate start is against a schedule at the target rate; only the
-    // differences between candidates matter.
+    // How late each packet is against a schedule at the target rate, judged against every packet
+    // of the window, the newest included: a start that was held up can only be told from the
+    // packets that came on time after it.
     double punctual = Double.POSITIVE_INFINITY;
-    for (int i = 0; i < count - 1; i++) {
-      int k = index(i);
-      if (arrivals[end] - arrivals[k] >= minSpan) {
-        punctual = Math.min(punctual, lateness(k, rate));
-      }
-    }
-    if (punctual == Double.POSITIVE_INFINITY) {
-      return Double.NaN;
+    for (int i = 0; i < count; i++) {
+      punctual = Math.min(punctual, lateness(index(i), rate));
     }
     for (int i = 0; i < count - 1; i++) {
       int k = index(i);
       if (arrivals[end] - arrivals[k] >= minSpan && lateness(k, rate) <= punctual + HELD_UP_NANOS) {
-        return (gameTimes[end] - gameTimes[k]) * 1e9 / (arrivals[end] - arrivals[k]);
+        return rateBetween(k, end);
+      }
+    }
+    // No start is as punctual as the newer packets. Either the older packets were held up, and
+    // the estimate waits for the punctual ones to age, or the server really ticks faster than its
+    // target, so every newer packet is "earlier": then the packets come at shorter steps.
+    if (fasterThanTarget(rate)) {
+      for (int i = 0; i < count - 1; i++) {
+        int k = index(i);
+        if (arrivals[end] - arrivals[k] >= minSpan) {
+          return rateBetween(k, end);
+        }
       }
     }
     return Double.NaN;
+  }
+
+  private double rateBetween(int from, int to) {
+    return (gameTimes[to] - gameTimes[from]) * 1e9 / (arrivals[to] - arrivals[from]);
+  }
+
+  /**
+   * Whether the packets come at shorter steps than the target rate gives, judged by the median
+   * step. Steps of packets that arrived together after a hold-up are left out: they say nothing
+   * about the server's pace.
+   */
+  private boolean fasterThanTarget(double rate) {
+    double expected = 1e9 / rate;
+    double[] steps = stepScratch;
+    int n = 0;
+    for (int i = 1; i < count; i++) {
+      int a = index(i - 1);
+      int b = index(i);
+      long ticks = gameTimes[b] - gameTimes[a];
+      if (ticks <= 0) {
+        continue;
+      }
+      double perTick = (arrivals[b] - arrivals[a]) / (double) ticks;
+      if (perTick >= expected * BUNCHED_SHARE) {
+        steps[n++] = perTick;
+      }
+    }
+    if (n == 0) {
+      return false;
+    }
+    java.util.Arrays.sort(steps, 0, n);
+    return steps[n / 2] < expected * FASTER_SHARE;
   }
 
   private double lateness(int k, double rate) {
