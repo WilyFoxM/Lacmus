@@ -29,6 +29,8 @@ public record NetView(
     float targetTickRate,
     double tickLateMillis,
     double queueMillis,
+    double frameMaxMillis,
+    double clientTickMillis,
     boolean bytesKnown,
     double inboundBytesPerSecond,
     double outboundBytesPerSecond,
@@ -36,10 +38,16 @@ public record NetView(
     double outboundPacketsPerSecond,
     boolean connectionAlarm,
     boolean tickAlarm,
-    boolean queueAlarm) {
+    boolean queueAlarm,
+    boolean clientTickAlarm) {
 
   /** Below this share of its target tick rate the server counts as lagging. */
   public static final double TICK_ALARM_SHARE = 0.9;
+
+  /** Whether the client's own line reports a problem. */
+  public boolean clientAlarm() {
+    return queueAlarm || clientTickAlarm;
+  }
 
   /** The round-trip part. */
   public enum Rtt {
@@ -68,7 +76,7 @@ public record NetView(
   }
 
   public static NetView of(
-      NetProbe probe, QueueDelay queue, int fps, boolean memoryConnection, boolean paused) {
+      NetProbe probe, ClientStats client, int fps, boolean memoryConnection, boolean paused) {
     ServerTicks ticks = probe.ticks();
     boolean localPause = memoryConnection && paused;
     double stall = localPause ? Double.NaN : probe.stallMillis();
@@ -103,8 +111,10 @@ public record NetView(
     }
     boolean tickAlarm =
         tick == Tick.LATE || (tick == Tick.ESTIMATE && tps < target * TICK_ALARM_SHARE);
-    double queueMillis = queue.worstMillis();
+    double queueMillis = client.queue().worstMillis();
     boolean queueAlarm = queueMillis * 1e6 >= QueueDelay.ALARM_NANOS;
+    double clientTickMillis = client.ticks().meanMillis();
+    boolean clientTickAlarm = clientTickMillis * 1e6 >= ClientStats.TICK_ALARM_NANOS;
 
     return new NetView(
         fps,
@@ -118,6 +128,8 @@ public record NetView(
         target,
         tick == Tick.LATE ? late : Double.NaN,
         queueMillis,
+        client.frames().maxMillis(),
+        clientTickMillis,
         !memoryConnection,
         probe.inboundBytesPerSecond(),
         probe.outboundBytesPerSecond(),
@@ -125,6 +137,7 @@ public record NetView(
         probe.outboundPacketsPerSecond(),
         stalled,
         tickAlarm,
-        queueAlarm);
+        queueAlarm,
+        clientTickAlarm);
   }
 }

@@ -18,15 +18,28 @@ Lacmus is in early development.
 
 ## What it shows
 
-Three lines in the top-left corner, hidden while the F3 screen is open:
+Three lines in the top-left corner, one for each side of the game, hidden while the F3 screen is
+open:
 
 ```
-fps 144  rtt 42 ms ±3 ms
-in 12 kB/s 40/s  out 1.2 kB/s 20/s
-tps ≈19.9  queue 4 ms
+fps 144 (max 18 ms)  tick 2.1 ms  queue 4 ms
+rtt 42 ms ±3 ms  in 12 kB/s 40/s  out 1.2 kB/s 20/s
+tps ≈19.9
 ```
 
-- **fps**: frames per second, as the game counts them.
+**The client**
+
+- **fps**: frames per second, as the game counts them. **(max 18 ms)** is the longest frame of the
+  last second, as the game times it for its own frame chart: a stutter that the frame rate hides.
+- **tick**: how long the client's tick takes on average over the last second. Above 50 ms the
+  client cannot keep 20 ticks a second.
+- **queue**: the longest a packet waited in the last second for the game to handle it after it
+  arrived. The game works through arriving packets once per frame, so up to about one frame is
+  normal (17 ms at 60 fps); a long wait means the client, not the network or the server, cannot
+  keep up.
+
+**The connection**
+
 - **rtt**: the round trip of a ping request to the server and back, timed where the packets
   enter and leave the network layer, so a client stutter does not show up as network lag.
   **±** is the jitter: how much one round trip differs from the previous one, on average over
@@ -39,6 +52,13 @@ tps ≈19.9  queue 4 ms
   to the game's own 30-second timeout. The server answers ping requests even while it is busy,
   so a stall points at the connection rather than at a slow server.
 - **no data**: the same pause in single player, where there is no round trip.
+
+To time the round trip, Lacmus sends two of the game's own ping requests per second while the
+HUD is shown on a server. The game itself sends them only while its network chart is open; then
+Lacmus times the game's requests and sends none.
+
+**The server**
+
 - **tps**: an estimate of how many ticks a second the server runs, from the time it sends once
   every 20 ticks anyway, over the last 5 seconds. Time that arrives late, as it does when a proxy
   switches servers, does not push the estimate above the real rate; for about two seconds after
@@ -46,18 +66,11 @@ tps ≈19.9  queue 4 ms
   (`/tick rate`), it is shown too: `≈9.9 of 10`. **frozen** when the server froze its ticks,
   **late** when its next time is overdue, **paused** in a paused single-player game. Unknown
   during a stall: then the connection, not the server, decides what arrives.
-- **queue**: the longest a packet waited in the last second for the game to handle it after it
-  arrived. The game works through arriving packets once per frame, so up to about one frame is
-  normal (17 ms at 60 fps); a long wait means the client, not the network or the server, cannot
-  keep up.
-- A line that reports a problem turns red: the first line during a stall or a pause, the last
-  line when the server falls below 90 % of its rate, its time is late, or packets wait 250 ms or
-  more.
-- **—**: the value is unknown. In single player there is no round trip and no bytes on a wire.
 
-To time the round trip, Lacmus sends two of the game's own ping requests per second while the
-HUD is shown on a server. The game itself sends them only while its network chart is open; then
-Lacmus times the game's requests and sends none.
+A line that reports a problem on its side turns red: the client line when packets wait 250 ms or
+more or the client tick takes 50 ms or more, the connection line during a stall or a pause, the
+server line when the server falls below 90 % of its rate or its time is late. **—** means the
+value is unknown.
 
 ## Controls
 
