@@ -23,15 +23,16 @@ plugins {
 
 stonecutter {
     create(rootProject) {
-        // Nodes are `{minecraft}-{loader}`; each loader has its own build script.
+        // Nodes are `{minecraft}-{loader}`; each loader has its own build script. The Fabric build
+        // also runs on Quilt, hence `fabric-quilt`.
         fun match(minecraft: String, vararg loaders: String) {
             for (loader in loaders) {
                 version("$minecraft-$loader", minecraft).buildscript("build.$loader.gradle.kts")
             }
         }
 
-        match("26.2", "fabric", "neoforge", "forge")
-        vcsVersion = "26.2-fabric"
+        match("26.2", "fabric-quilt", "neoforge", "forge")
+        vcsVersion = "26.2-fabric-quilt"
     }
 }
 

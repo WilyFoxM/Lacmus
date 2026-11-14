@@ -11,7 +11,7 @@ fun prop(key: String): String = sc.properties.get<String>(key)
 val modId = prop("mod.id")
 version = "${prop("mod.version")}+${sc.current.version}"
 group = prop("mod.group")
-base.archivesName = "$modId-fabric"
+base.archivesName = "$modId-fabric-quilt"
 
 // The other loaders' adapters and metadata are not part of this node.
 sourceSets.main {
