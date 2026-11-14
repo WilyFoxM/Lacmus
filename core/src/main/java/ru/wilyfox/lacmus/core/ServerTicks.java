@@ -24,14 +24,23 @@ public final class ServerTicks {
   /** The game's default tick rate, assumed until the server says otherwise. */
   public static final float DEFAULT_TICK_RATE = 20;
 
-  /** Averaging window of the estimate, or three intervals when the server ticks slowly. */
+  /**
+   * Averaging window of the estimate, or one interval more than the shortest span when the server
+   * ticks slowly.
+   */
   public static final long WINDOW_NANOS = 5_000_000_000L;
 
-  /** The estimate spans at least this many intervals between time packets. */
-  public static final int MIN_SPAN_INTERVALS = 2;
+  /**
+   * The estimate spans at least this many intervals between time packets: over a short span, a
+   * packet held back within {@link #HELD_UP_NANOS} still moves it noticeably.
+   */
+  public static final int MIN_SPAN_INTERVALS = 3;
 
-  /** A packet this much later than the most punctual one is held up, not just jittered. */
-  public static final long HELD_UP_NANOS = 150_000_000L;
+  /**
+   * A packet this much later than the most punctual one is held up, not just jittered. Over the
+   * shortest span this lifts the estimate by at most about 1.7 %.
+   */
+  public static final long HELD_UP_NANOS = 50_000_000L;
 
   private static final int SAMPLES = 32;
 
@@ -95,7 +104,8 @@ public final class ServerTicks {
     gameTimes[index(count)] = gameTime;
     arrivals[index(count)] = arrival;
     count++;
-    long window = Math.max(WINDOW_NANOS, 3 * syncIntervalNanos());
+    // Longer than the shortest span by an interval, so jitter never drops the start it needs.
+    long window = Math.max(WINDOW_NANOS, (MIN_SPAN_INTERVALS + 1) * syncIntervalNanos());
     while (count > 1 && arrival - arrivals[start] > window) {
       start = (start + 1) % SAMPLES;
       count--;

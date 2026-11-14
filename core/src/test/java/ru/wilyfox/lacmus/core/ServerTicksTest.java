@@ -181,7 +181,8 @@ class ServerTicksTest {
     // Another server with an earlier game time.
     assertTrue(Double.isNaN(at(ticks, 500, 6_000)));
     at(ticks, 520, 7_000);
-    assertEquals(20, at(ticks, 540, 8_000), 0.01);
+    at(ticks, 540, 8_000);
+    assertEquals(20, at(ticks, 560, 9_000), 0.01);
   }
 
   @Test
@@ -192,5 +193,30 @@ class ServerTicksTest {
       at(ticks, i * 20L, i * 250L);
     }
     assertEquals(80, ticks.ticksPerSecond(), 0.01);
+  }
+
+  @Test
+  void slightlyHeldUpStartLiftsTheFirstEstimateByLittle() {
+    // The packet sent at 0 s arrives 45 ms late, within the jitter allowance.
+    ServerTicks ticks = new ServerTicks();
+    at(ticks, 0, 45);
+    for (int i = 1; i <= 8; i++) {
+      double estimate = at(ticks, i * 20L, i * 1000L);
+      int second = i;
+      assertTrue(
+          Double.isNaN(estimate) || estimate <= 20 * 1.017,
+          () -> "at " + second + " s: " + estimate);
+    }
+  }
+
+  @Test
+  void slowTickRateWithJitterStillGetsAnEstimate() {
+    ServerTicks ticks = new ServerTicks();
+    ticks.tickingState(10, false);
+    long[] jitter = {0, 30, -20, 10, 40, -30, 20, 0, -10, 30, 10, -20};
+    for (int i = 0; i < jitter.length; i++) {
+      at(ticks, i * 20L, i * 2000L + 100 + jitter[i]);
+    }
+    assertEquals(10, ticks.ticksPerSecond(), 0.15);
   }
 }
