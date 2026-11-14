@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.resources.Identifier;
+import ru.wilyfox.lacmus.core.ClientStats;
 import ru.wilyfox.lacmus.core.NetProbe;
 import ru.wilyfox.lacmus.core.NetView;
 import ru.wilyfox.lacmus.core.QueueDelay;
@@ -33,7 +34,7 @@ public final class LacmusClient {
           KEY_CATEGORY);
 
   private static final NetHud HUD = new NetHud();
-  private static final QueueDelay QUEUE = new QueueDelay();
+  private static final ClientStats CLIENT = new ClientStats();
   private static final Pinger PINGER = new Pinger();
 
   private static NetProbe probe;
@@ -43,7 +44,7 @@ public final class LacmusClient {
 
   public static void onJoin(ClientPacketListener listener) {
     probe = new NetProbe();
-    QUEUE.reset();
+    CLIENT.reset();
     NetTaps.install(listener.getConnection(), probe);
     HUD.reset();
     PINGER.reset();
@@ -69,10 +70,10 @@ public final class LacmusClient {
       PINGER.tick(minecraft, listener, now);
     }
     current.update(now);
-    QUEUE.update();
+    CLIENT.update();
     if (visible) {
       boolean memory = listener.getConnection().isMemoryConnection();
-      NetView view = NetView.of(current, QUEUE, minecraft.getFps(), memory, minecraft.isPaused());
+      NetView view = NetView.of(current, CLIENT, minecraft.getFps(), memory, minecraft.isPaused());
       HUD.update(minecraft.font, view);
     }
   }
@@ -82,9 +83,14 @@ public final class LacmusClient {
     return probe;
   }
 
+  /** The client's own frame, tick and queue statistics. Client thread, except the queue. */
+  public static ClientStats clientStats() {
+    return CLIENT;
+  }
+
   /** The wait of packets in the client's queue. */
   public static QueueDelay queueDelay() {
-    return QUEUE;
+    return CLIENT.queue();
   }
 
   /** Whether {@code processor} is the client's own packet queue. Any thread. */

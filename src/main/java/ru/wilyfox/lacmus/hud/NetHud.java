@@ -8,18 +8,19 @@ import ru.wilyfox.lacmus.core.NetFormat;
 import ru.wilyfox.lacmus.core.NetView;
 
 /**
- * Lines in the top-left corner, in the spirit of {@code net_graph 1}:
+ * Three lines in the top-left corner, in the spirit of {@code net_graph 1}, one per side of the
+ * game:
  *
  * <pre>
- * fps 144  rtt 42 ms ±3 ms
- * in 12 kB/s 40/s  out 1.2 kB/s 20/s
- * tps ≈19.9  queue 4 ms
+ * fps 144 (max 18 ms)  tick 2.1 ms  queue 4 ms           the client
+ * rtt 42 ms ±3 ms  in 12 kB/s 40/s  out 1.2 kB/s 20/s   the connection
+ * tps ≈19.9                                              the server
  * </pre>
  *
  * While nothing arrives from a server, the round trip says for how long, and later how long until
  * the game gives up: {@code rtt stall 8.0 s timeout in 22 s}. In single player, where there is no
  * round trip, the pause is shown on its own: {@code rtt — no data 8.0 s}. A line that reports a
- * problem, a stall or a lagging server, turns entirely to the alarm colour.
+ * problem on its side turns entirely to the alarm colour.
  *
  * <p>What to show is decided by {@link NetView}; the lines are rebuilt once per client tick and a
  * frame only draws them.
@@ -35,13 +36,14 @@ public final class NetHud {
   private int width;
 
   public void update(Font font, NetView view) {
-    Component connection = connectionLine(view);
-    Component ticks = tickLine(view);
+    Component client = clientLine(view);
+    Component network = networkLine(view);
+    Component server = serverLine(view);
     lines =
         new Component[] {
-          view.connectionAlarm() ? alarm(connection) : connection,
-          trafficLine(view),
-          view.tickAlarm() || view.queueAlarm() ? alarm(ticks) : ticks
+          view.clientAlarm() ? alarm(client) : client,
+          view.connectionAlarm() ? alarm(network) : network,
+          view.tickAlarm() ? alarm(server) : server
         };
     width = 0;
     for (Component line : lines) {
@@ -69,9 +71,25 @@ public final class NetHud {
     }
   }
 
-  private static Component connectionLine(NetView view) {
+  /** The client itself: frames, ticks, and how long packets wait for it. */
+  private static Component clientLine(NetView view) {
     MutableComponent line = label("fps").append(" ").append(number(NetFormat.whole(view.fps())));
-    line.append(GAP).append(label("rtt")).append(" ");
+    String frameMax = NetFormat.millis(view.frameMaxMillis());
+    if (frameMax != null) {
+      line.append(" ").append(text("frame_max", frameMax));
+    }
+    line.append(GAP).append(label("client_tick")).append(" ");
+    String tick = NetFormat.millis(view.clientTickMillis());
+    line.append(tick == null ? unknown() : text("unit.ms", tick));
+    line.append(GAP).append(label("queue")).append(" ");
+    String queue = NetFormat.millis(view.queueMillis());
+    line.append(queue == null ? unknown() : text("unit.ms", queue));
+    return line;
+  }
+
+  /** The connection: round trip or stall, and traffic both ways. */
+  private static Component networkLine(NetView view) {
+    MutableComponent line = label("rtt").append(" ");
     String stall = NetFormat.seconds(view.stallMillis());
     switch (view.rtt()) {
       case STALL -> {
@@ -96,11 +114,7 @@ public final class NetHud {
         }
       }
     }
-    return line;
-  }
-
-  private static Component trafficLine(NetView view) {
-    MutableComponent line = label("in").append(" ");
+    line.append(GAP).append(label("in")).append(" ");
     line.append(bytes(view.inboundBytesPerSecond(), view.bytesKnown())).append(" ");
     line.append(packets(view.inboundPacketsPerSecond()));
     line.append(GAP).append(label("out")).append(" ");
@@ -109,9 +123,10 @@ public final class NetHud {
     return line;
   }
 
-  private static Component tickLine(NetView view) {
+  /** The server: how fast it ticks. */
+  private static Component serverLine(NetView view) {
     MutableComponent line = label("tps").append(" ");
-    line.append(
+    return line.append(
         switch (view.tick()) {
           case ESTIMATE -> {
             String estimate = NetFormat.ticks(view.ticksPerSecond());
@@ -125,11 +140,6 @@ public final class NetHud {
           case LATE -> text("tps.late", NetFormat.seconds(view.tickLateMillis()));
           case UNKNOWN -> unknown();
         });
-    // The client's side of the same question: how long packets wait for it.
-    String queue = NetFormat.millis(view.queueMillis());
-    line.append(GAP).append(label("queue")).append(" ");
-    line.append(queue == null ? unknown() : text("unit.ms", queue));
-    return line;
   }
 
   private static Component alarm(Component line) {

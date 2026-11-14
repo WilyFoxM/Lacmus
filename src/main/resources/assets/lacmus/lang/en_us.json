@@ -2,6 +2,8 @@
   "key.category.lacmus.main": "Lacmus",
   "key.lacmus.toggle": "Show or hide Lacmus",
   "hud.lacmus.fps": "fps",
+  "hud.lacmus.frame_max": "(max %s ms)",
+  "hud.lacmus.client_tick": "tick",
   "hud.lacmus.rtt": "rtt",
   "hud.lacmus.in": "in",
   "hud.lacmus.out": "out",
