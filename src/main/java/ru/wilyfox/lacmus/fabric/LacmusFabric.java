@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.KeyMapping;
 import ru.wilyfox.lacmus.Lacmus;
 import ru.wilyfox.lacmus.LacmusClient;
 
@@ -20,10 +21,11 @@ public final class LacmusFabric implements ClientModInitializer {
             .map(mod -> mod.getMetadata().getVersion().getFriendlyString())
             .orElse("");
     LacmusClient.init(version, FabricLoader.getInstance().getConfigDir());
+    KeyMapping.Category.register(LacmusClient.KEY_CATEGORY.id());
     KeyMappingHelper.registerKeyMapping(LacmusClient.OPEN_KEY);
     KeyMappingHelper.registerKeyMapping(LacmusClient.TOGGLE_KEY);
     ClientPlayConnectionEvents.JOIN.register(
-        (listener, sender, minecraft) -> LacmusClient.onJoin(listener));
+        (listener, sender, minecraft) -> LacmusClient.onJoin(listener.getConnection()));
     ClientPlayConnectionEvents.DISCONNECT.register(
         (listener, minecraft) -> LacmusClient.onDisconnect());
     ClientTickEvents.END_CLIENT_TICK.register(LacmusClient::onEndTick);

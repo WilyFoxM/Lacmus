@@ -1,6 +1,7 @@
 pluginManagement {
     repositories {
         maven("https://maven.fabricmc.net/") { name = "Fabric" }
+        maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
         maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
         mavenCentral()
         gradlePluginPortal()
@@ -8,6 +9,8 @@ pluginManagement {
     plugins {
         // Fabric Loom for Minecraft 26.x: official names, no remapping.
         id("net.fabricmc.fabric-loom") version "1.17.21"
+        // NeoForge's ModDevGradle.
+        id("net.neoforged.moddev") version "2.0.148"
     }
 }
 
@@ -24,7 +27,7 @@ stonecutter {
             }
         }
 
-        match("26.2", "fabric")
+        match("26.2", "fabric", "neoforge")
         vcsVersion = "26.2-fabric"
     }
 }

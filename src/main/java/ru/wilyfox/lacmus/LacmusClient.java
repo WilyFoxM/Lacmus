@@ -6,6 +6,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -21,16 +22,17 @@ import ru.wilyfox.lacmus.net.NetTaps;
 import ru.wilyfox.lacmus.net.Pinger;
 
 /**
- * Loader-neutral client logic. Loader adapters call {@link #init}, register {@link #OPEN_KEY},
- * {@link #TOGGLE_KEY} and the HUD element {@link #HUD_ID}, and forward joins, disconnects, client
- * ticks and HUD drawing here. Everything runs on the client thread, except what {@link NetTaps}
- * puts on the network thread.
+ * Loader-neutral client logic. Loader adapters call {@link #init}, register {@link #KEY_CATEGORY},
+ * {@link #OPEN_KEY}, {@link #TOGGLE_KEY} and the HUD element {@link #HUD_ID}, and forward joins,
+ * disconnects, client ticks and HUD drawing here. Everything runs on the client thread, except what
+ * {@link NetTaps} puts on the network thread.
  */
 public final class LacmusClient {
   public static final Identifier HUD_ID = Identifier.fromNamespaceAndPath(Lacmus.MOD_ID, "net");
 
+  /** The key category; each loader adapter registers it its own way. */
   public static final KeyMapping.Category KEY_CATEGORY =
-      KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Lacmus.MOD_ID, "main"));
+      new KeyMapping.Category(Identifier.fromNamespaceAndPath(Lacmus.MOD_ID, "main"));
 
   /** Opens the settings; F6 by default. */
   public static final KeyMapping OPEN_KEY =
@@ -74,10 +76,11 @@ public final class LacmusClient {
     return LacmusConfig.get();
   }
 
-  public static void onJoin(ClientPacketListener listener) {
+  /** The client joined a world on {@code connection}, or rejoined after reconfiguration. */
+  public static void onJoin(Connection connection) {
     probe = new NetProbe();
     CLIENT.reset();
-    NetTaps.install(listener.getConnection(), probe);
+    NetTaps.install(connection, probe);
     HUD.reset();
     PINGER.reset();
   }

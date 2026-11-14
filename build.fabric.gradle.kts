@@ -13,6 +13,11 @@ version = "${prop("mod.version")}+${sc.current.version}"
 group = prop("mod.group")
 base.archivesName = "$modId-fabric"
 
+// The other loaders' adapters and metadata are not part of this node.
+sourceSets.main {
+    java.exclude("ru/wilyfox/lacmus/neoforge/**")
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:${sc.current.version}")
     implementation("net.fabricmc:fabric-loader:${prop("deps.fabric_loader")}")
@@ -52,6 +57,7 @@ tasks.processResources {
         )
     inputs.properties(props)
     filesMatching("fabric.mod.json") { expand(props) }
+    exclude("META-INF/neoforge.mods.toml")
 }
 
 tasks.jar {
