@@ -8,6 +8,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.resources.Identifier;
 import ru.wilyfox.lacmus.core.NetProbe;
 import ru.wilyfox.lacmus.core.NetView;
+import ru.wilyfox.lacmus.core.QueueDelay;
 import ru.wilyfox.lacmus.hud.NetHud;
 import ru.wilyfox.lacmus.net.NetTaps;
 import ru.wilyfox.lacmus.net.Pinger;
@@ -32,6 +33,7 @@ public final class LacmusClient {
           KEY_CATEGORY);
 
   private static final NetHud HUD = new NetHud();
+  private static final QueueDelay QUEUE = new QueueDelay();
   private static final Pinger PINGER = new Pinger();
 
   private static NetProbe probe;
@@ -41,6 +43,7 @@ public final class LacmusClient {
 
   public static void onJoin(ClientPacketListener listener) {
     probe = new NetProbe();
+    QUEUE.reset();
     NetTaps.install(listener.getConnection(), probe);
     HUD.reset();
     PINGER.reset();
@@ -66,9 +69,10 @@ public final class LacmusClient {
       PINGER.tick(minecraft, listener, now);
     }
     current.update(now);
+    QUEUE.update();
     if (visible) {
       boolean memory = listener.getConnection().isMemoryConnection();
-      NetView view = NetView.of(current, minecraft.getFps(), memory, minecraft.isPaused());
+      NetView view = NetView.of(current, QUEUE, minecraft.getFps(), memory, minecraft.isPaused());
       HUD.update(minecraft.font, view);
     }
   }
@@ -76,6 +80,17 @@ public final class LacmusClient {
   /** The probe of the current connection, or {@code null} outside a world. Client thread. */
   public static NetProbe probe() {
     return probe;
+  }
+
+  /** The wait of packets in the client's queue. */
+  public static QueueDelay queueDelay() {
+    return QUEUE;
+  }
+
+  /** Whether {@code processor} is the client's own packet queue. Any thread. */
+  public static boolean isClientQueue(Object processor) {
+    Minecraft minecraft = Minecraft.getInstance();
+    return minecraft != null && processor == minecraft.packetProcessor();
   }
 
   /** Whether the HUD is switched on. Client thread. */

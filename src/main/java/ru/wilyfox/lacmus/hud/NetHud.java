@@ -13,7 +13,7 @@ import ru.wilyfox.lacmus.core.NetView;
  * <pre>
  * fps 144  rtt 42 ms ±3 ms
  * in 12 kB/s 40/s  out 1.2 kB/s 20/s
- * tps ≈19.9
+ * tps ≈19.9  queue 4 ms
  * </pre>
  *
  * While nothing arrives from a server, the round trip says for how long, and later how long until
@@ -41,7 +41,7 @@ public final class NetHud {
         new Component[] {
           view.connectionAlarm() ? alarm(connection) : connection,
           trafficLine(view),
-          view.tickAlarm() ? alarm(ticks) : ticks
+          view.tickAlarm() || view.queueAlarm() ? alarm(ticks) : ticks
         };
     width = 0;
     for (Component line : lines) {
@@ -111,19 +111,25 @@ public final class NetHud {
 
   private static Component tickLine(NetView view) {
     MutableComponent line = label("tps").append(" ");
-    return switch (view.tick()) {
-      case ESTIMATE -> {
-        String estimate = NetFormat.ticks(view.ticksPerSecond());
-        float target = view.targetTickRate();
-        yield target == 20
-            ? line.append(text("tps.estimate", estimate))
-            : line.append(text("tps.estimate_of", estimate, NetFormat.tickRate(target)));
-      }
-      case FROZEN -> line.append(text("tps.frozen"));
-      case PAUSED -> line.append(text("tps.paused"));
-      case LATE -> line.append(text("tps.late", NetFormat.seconds(view.tickLateMillis())));
-      case UNKNOWN -> line.append(unknown());
-    };
+    line.append(
+        switch (view.tick()) {
+          case ESTIMATE -> {
+            String estimate = NetFormat.ticks(view.ticksPerSecond());
+            float target = view.targetTickRate();
+            yield target == 20
+                ? text("tps.estimate", estimate)
+                : text("tps.estimate_of", estimate, NetFormat.tickRate(target));
+          }
+          case FROZEN -> text("tps.frozen");
+          case PAUSED -> text("tps.paused");
+          case LATE -> text("tps.late", NetFormat.seconds(view.tickLateMillis()));
+          case UNKNOWN -> unknown();
+        });
+    // The client's side of the same question: how long packets wait for it.
+    String queue = NetFormat.millis(view.queueMillis());
+    line.append(GAP).append(label("queue")).append(" ");
+    line.append(queue == null ? unknown() : text("unit.ms", queue));
+    return line;
   }
 
   private static Component alarm(Component line) {

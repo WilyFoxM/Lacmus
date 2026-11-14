@@ -3,7 +3,8 @@
   "package": "ru.wilyfox.lacmus.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ConnectionAccessor"
+    "ConnectionAccessor",
+    "PacketProcessorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
