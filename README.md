@@ -99,7 +99,9 @@ Lacmus is a client-side mod: a server does not need it.
 
 - Other versions of Minecraft 26.x are not supported yet: 26.1 and 26.3 changed parts of the
   game that Lacmus uses.
-- I haven't tested Lacmus together with other mods yet, including Sodium and Iris.
+- I play with Sodium and Iris, with shaders and without, and Lacmus works with them. It draws
+  its lines as part of the game's own HUD.
+- Other mods have not been tested.
 
 ## License
 
