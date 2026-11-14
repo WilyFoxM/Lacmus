@@ -13,6 +13,8 @@ package ru.wilyfox.lacmus.core;
  *       connection, not the server, decides what arrives.
  *   <li>A frozen server is a choice, not a problem. A late time packet or an estimate below {@link
  *       #TICK_ALARM_SHARE} of the target tick rate is a problem.
+ *   <li>Packets waiting {@link QueueDelay#ALARM_NANOS} or longer for the client to handle them mean
+ *       the client cannot keep up.
  * </ul>
  */
 public record NetView(
@@ -26,13 +28,15 @@ public record NetView(
     double ticksPerSecond,
     float targetTickRate,
     double tickLateMillis,
+    double queueMillis,
     boolean bytesKnown,
     double inboundBytesPerSecond,
     double outboundBytesPerSecond,
     double inboundPacketsPerSecond,
     double outboundPacketsPerSecond,
     boolean connectionAlarm,
-    boolean tickAlarm) {
+    boolean tickAlarm,
+    boolean queueAlarm) {
 
   /** Below this share of its target tick rate the server counts as lagging. */
   public static final double TICK_ALARM_SHARE = 0.9;
@@ -63,7 +67,8 @@ public record NetView(
     PAUSED
   }
 
-  public static NetView of(NetProbe probe, int fps, boolean memoryConnection, boolean paused) {
+  public static NetView of(
+      NetProbe probe, QueueDelay queue, int fps, boolean memoryConnection, boolean paused) {
     ServerTicks ticks = probe.ticks();
     boolean localPause = memoryConnection && paused;
     double stall = localPause ? Double.NaN : probe.stallMillis();
@@ -98,6 +103,8 @@ public record NetView(
     }
     boolean tickAlarm =
         tick == Tick.LATE || (tick == Tick.ESTIMATE && tps < target * TICK_ALARM_SHARE);
+    double queueMillis = queue.worstMillis();
+    boolean queueAlarm = queueMillis * 1e6 >= QueueDelay.ALARM_NANOS;
 
     return new NetView(
         fps,
@@ -110,12 +117,14 @@ public record NetView(
         tick == Tick.ESTIMATE ? tps : Double.NaN,
         target,
         tick == Tick.LATE ? late : Double.NaN,
+        queueMillis,
         !memoryConnection,
         probe.inboundBytesPerSecond(),
         probe.outboundBytesPerSecond(),
         probe.inboundPacketsPerSecond(),
         probe.outboundPacketsPerSecond(),
         stalled,
-        tickAlarm);
+        tickAlarm,
+        queueAlarm);
   }
 }

@@ -21,5 +21,6 @@
   "hud.lacmus.tps.frozen": "frozen",
   "hud.lacmus.tps.paused": "paused",
   "hud.lacmus.tps.late": "late %s s",
+  "hud.lacmus.queue": "queue",
   "hud.lacmus.unknown": "—"
 }
