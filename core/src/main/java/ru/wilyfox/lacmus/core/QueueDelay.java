@@ -18,9 +18,6 @@ public final class QueueDelay {
   /** The worst wait over this many client ticks (one second at 20 ticks a second) is shown. */
   public static final int WINDOW_TICKS = 20;
 
-  /** A wait this long means the client cannot keep up. */
-  public static final long ALARM_NANOS = 250_000_000L;
-
   private static final VarHandle SAMPLE;
 
   static {

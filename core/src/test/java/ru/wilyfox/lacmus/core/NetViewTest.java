@@ -30,7 +30,8 @@ class NetViewTest {
 
   @Test
   void healthyServer() {
-    NetView view = NetView.of(healthy(20, 6000), new ClientStats(), 144, false, false);
+    NetView view =
+        NetView.of(healthy(20, 6000), new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Rtt.VALUE, view.rtt());
     assertEquals(40, view.rttMillis(), 1e-9);
     assertEquals(Tick.ESTIMATE, view.tick());
@@ -42,7 +43,8 @@ class NetViewTest {
 
   @Test
   void laggingServerRaisesTheTickAlarm() {
-    NetView view = NetView.of(healthy(15, 6000), new ClientStats(), 144, false, false);
+    NetView view =
+        NetView.of(healthy(15, 6000), new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Tick.ESTIMATE, view.tick());
     assertEquals(15, view.ticksPerSecond(), 1e-9);
     assertTrue(view.tickAlarm());
@@ -53,7 +55,7 @@ class NetViewTest {
   void stallOnAServerReplacesTheRoundTripAndHidesTicks() {
     NetProbe probe = healthy(20, 6000);
     probe.update(9_000 * MS);
-    NetView view = NetView.of(probe, new ClientStats(), 144, false, false);
+    NetView view = NetView.of(probe, new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Rtt.STALL, view.rtt());
     assertTrue(Double.isNaN(view.rttMillis()));
     assertEquals(9_000 - 6_040, view.stallMillis(), 1e-9);
@@ -77,7 +79,7 @@ class NetViewTest {
       }
       probe.update((t + 40) * MS);
     }
-    NetView view = NetView.of(probe, new ClientStats(), 144, false, false);
+    NetView view = NetView.of(probe, new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Rtt.VALUE, view.rtt());
     assertFalse(view.connectionAlarm());
     assertEquals(Tick.LATE, view.tick());
@@ -89,7 +91,7 @@ class NetViewTest {
   void frozenServerIsNotAnAlarm() {
     NetProbe probe = healthy(20, 6000);
     probe.tickingState(20, true);
-    NetView view = NetView.of(probe, new ClientStats(), 144, false, false);
+    NetView view = NetView.of(probe, new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Tick.FROZEN, view.tick());
     assertFalse(view.tickAlarm());
   }
@@ -107,7 +109,7 @@ class NetViewTest {
       }
       probe.update(t * MS);
     }
-    NetView view = NetView.of(probe, new ClientStats(), 144, false, false);
+    NetView view = NetView.of(probe, new ClientStats(), 144, false, false, new HudSettings());
     assertEquals(Tick.ESTIMATE, view.tick());
     assertEquals(10, view.ticksPerSecond(), 1e-9);
     assertEquals(10, view.targetTickRate());
@@ -118,7 +120,7 @@ class NetViewTest {
   void singlePlayerHasNoRoundTripAndShowsPauseAsNoData() {
     NetProbe probe = healthy(20, 6000);
     probe.update(9_000 * MS);
-    NetView view = NetView.of(probe, new ClientStats(), 60, true, false);
+    NetView view = NetView.of(probe, new ClientStats(), 60, true, false, new HudSettings());
     assertEquals(Rtt.NONE, view.rtt());
     assertFalse(view.bytesKnown());
     assertEquals(9_000 - 6_040, view.stallMillis(), 1e-9);
@@ -131,7 +133,7 @@ class NetViewTest {
   void pausedSinglePlayerIsQuiet() {
     NetProbe probe = healthy(20, 6000);
     probe.update(30_000 * MS);
-    NetView view = NetView.of(probe, new ClientStats(), 60, true, true);
+    NetView view = NetView.of(probe, new ClientStats(), 60, true, true, new HudSettings());
     assertTrue(Double.isNaN(view.stallMillis()));
     assertEquals(Tick.PAUSED, view.tick());
     assertFalse(view.connectionAlarm());
@@ -142,7 +144,7 @@ class NetViewTest {
   void pauseScreenOnAServerChangesNothing() {
     NetProbe probe = healthy(20, 6000);
     probe.update(9_000 * MS);
-    NetView view = NetView.of(probe, new ClientStats(), 60, false, true);
+    NetView view = NetView.of(probe, new ClientStats(), 60, false, true, new HudSettings());
     assertEquals(Rtt.STALL, view.rtt());
     assertTrue(view.connectionAlarm());
   }
@@ -154,7 +156,7 @@ class NetViewTest {
     client.queue().queued(item, 0);
     client.queue().handled(item, 300 * MS);
     client.update();
-    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false);
+    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false, new HudSettings());
     assertEquals(300, view.queueMillis(), 1e-9);
     assertTrue(view.queueAlarm());
     assertTrue(view.clientAlarm());
@@ -169,7 +171,7 @@ class NetViewTest {
     client.queue().queued(item, 0);
     client.queue().handled(item, 6 * MS);
     client.update();
-    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false);
+    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false, new HudSettings());
     assertEquals(6, view.queueMillis(), 1e-9);
     assertFalse(view.clientAlarm());
   }
@@ -183,7 +185,7 @@ class NetViewTest {
       client.ticks().add(2 * MS);
       client.update();
     }
-    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false);
+    NetView view = NetView.of(healthy(20, 6000), client, 144, false, false, new HudSettings());
     assertEquals(40, view.frameMaxMillis(), 1e-9);
     assertEquals(2, view.clientTickMillis(), 1e-9);
     assertFalse(view.clientAlarm());
@@ -196,8 +198,40 @@ class NetViewTest {
       client.ticks().add(60 * MS);
       client.update();
     }
-    NetView view = NetView.of(healthy(20, 6000), client, 15, false, false);
+    NetView view = NetView.of(healthy(20, 6000), client, 15, false, false, new HudSettings());
     assertTrue(view.clientTickAlarm());
     assertTrue(view.clientAlarm());
+  }
+
+  @Test
+  void thresholdsComeFromTheSettings() {
+    ClientStats client = new ClientStats();
+    Object item = new Object();
+    client.queue().queued(item, 0);
+    client.queue().handled(item, 120 * MS);
+    client.update();
+    HudSettings settings = new HudSettings();
+    assertFalse(NetView.of(healthy(20, 6000), client, 60, false, false, settings).queueAlarm());
+    settings.queueAlarmMs = 100;
+    assertTrue(NetView.of(healthy(20, 6000), client, 60, false, false, settings).queueAlarm());
+
+    settings.tpsAlarmPercent = 70;
+    assertFalse(NetView.of(healthy(15, 6000), client, 60, false, false, settings).tickAlarm());
+  }
+
+  @Test
+  void pingIsTheMeanRoundTripOfTheLastFiveSeconds() {
+    NetProbe probe = new NetProbe();
+    long[] trips = {40, 60, 40, 60};
+    for (int i = 0; i < trips.length; i++) {
+      long t = i * 500L;
+      probe.pingSent(t, t * MS);
+      probe.pongReceived(t, (t + trips[i]) * MS);
+      probe.inboundPacket((t + trips[i]) * MS);
+      probe.update((t + 100) * MS);
+    }
+    NetView view = NetView.of(probe, new ClientStats(), 60, false, false, new HudSettings());
+    assertEquals(60, view.rttMillis(), 1e-9);
+    assertEquals(50, view.pingMillis(), 1e-9);
   }
 }

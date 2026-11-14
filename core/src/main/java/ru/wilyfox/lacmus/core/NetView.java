@@ -11,9 +11,9 @@ package ru.wilyfox.lacmus.core;
  *       integrated server is paused too, so silence and missing ticks are expected, not a problem.
  *   <li>On a server, a stall replaces the round trip, and the server's ticks are unknown: the
  *       connection, not the server, decides what arrives.
- *   <li>A frozen server is a choice, not a problem. A late time packet or an estimate below {@link
- *       #TICK_ALARM_SHARE} of the target tick rate is a problem.
- *   <li>Packets waiting {@link QueueDelay#ALARM_NANOS} or longer for the client to handle them mean
+ *   <li>A frozen server is a choice, not a problem. A late time packet or an estimate below the
+ *       share of the target tick rate set in {@link HudSettings#tpsAlarmPercent} is a problem.
+ *   <li>Packets waiting, or client ticks taking, as long as the settings' thresholds or longer mean
  *       the client cannot keep up.
  * </ul>
  */
@@ -21,6 +21,7 @@ public record NetView(
     int fps,
     Rtt rtt,
     double rttMillis,
+    double pingMillis,
     double jitterMillis,
     double stallMillis,
     double timeoutInMillis,
@@ -40,9 +41,6 @@ public record NetView(
     boolean tickAlarm,
     boolean queueAlarm,
     boolean clientTickAlarm) {
-
-  /** Below this share of its target tick rate the server counts as lagging. */
-  public static final double TICK_ALARM_SHARE = 0.9;
 
   /** Whether the client's own line reports a problem. */
   public boolean clientAlarm() {
@@ -76,7 +74,12 @@ public record NetView(
   }
 
   public static NetView of(
-      NetProbe probe, ClientStats client, int fps, boolean memoryConnection, boolean paused) {
+      NetProbe probe,
+      ClientStats client,
+      int fps,
+      boolean memoryConnection,
+      boolean paused,
+      HudSettings settings) {
     ServerTicks ticks = probe.ticks();
     boolean localPause = memoryConnection && paused;
     double stall = localPause ? Double.NaN : probe.stallMillis();
@@ -110,16 +113,18 @@ public record NetView(
       tick = Tick.ESTIMATE;
     }
     boolean tickAlarm =
-        tick == Tick.LATE || (tick == Tick.ESTIMATE && tps < target * TICK_ALARM_SHARE);
+        tick == Tick.LATE
+            || (tick == Tick.ESTIMATE && tps < target * settings.tpsAlarmPercent / 100.0);
     double queueMillis = client.queue().worstMillis();
-    boolean queueAlarm = queueMillis * 1e6 >= QueueDelay.ALARM_NANOS;
+    boolean queueAlarm = queueMillis >= settings.queueAlarmMs;
     double clientTickMillis = client.ticks().meanMillis();
-    boolean clientTickAlarm = clientTickMillis * 1e6 >= ClientStats.TICK_ALARM_NANOS;
+    boolean clientTickAlarm = clientTickMillis >= settings.clientTickAlarmMs;
 
     return new NetView(
         fps,
         rtt,
         rtt == Rtt.VALUE ? probe.rttMillis() : Double.NaN,
+        rtt == Rtt.VALUE ? probe.pingMillis() : Double.NaN,
         rtt == Rtt.VALUE ? probe.jitterMillis() : Double.NaN,
         stall,
         timeout,

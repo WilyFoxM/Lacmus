@@ -2,8 +2,8 @@ package ru.wilyfox.lacmus.hud;
 
 /** Colour roles of the HUD. Palette: #272727, #f3fcf0, #d1495b. */
 public final class LacmusTheme {
-  /** Panel behind the numbers: #272727 at 75 %. */
-  public static final int PANEL = 0xC0272727;
+  /** Panel behind the numbers, without alpha: the opacity is a setting. */
+  public static final int PANEL_RGB = 0x272727;
 
   /** Values. */
   public static final int VALUE = 0xF3FCF0;
