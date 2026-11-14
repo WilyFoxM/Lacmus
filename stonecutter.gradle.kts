@@ -2,7 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.2-fabric"
+stonecutter active "26.2-fabric-quilt"
 
 stonecutter parameters {
     val (_, loader) = current.project.split('-', limit = 2)
@@ -12,10 +12,10 @@ stonecutter parameters {
         tags(current.version, loader)
     }
 
-    // `//? if fabric` is reserved for loader seams; most code stays loader-neutral.
-    constants {
-        match(loader, "fabric", "neoforge")
-    }
+    // `//? if fabric` and the like are reserved for loader seams; most code stays loader-neutral.
+    constants["fabric"] = loader == "fabric-quilt"
+    constants["neoforge"] = loader == "neoforge"
+    constants["forge"] = loader == "forge"
 }
 
 // Formatting: google-java-format over every Java source. Spotless is not used, because it

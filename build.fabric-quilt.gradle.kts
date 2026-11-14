@@ -11,11 +11,11 @@ fun prop(key: String): String = sc.properties.get<String>(key)
 val modId = prop("mod.id")
 version = "${prop("mod.version")}+${sc.current.version}"
 group = prop("mod.group")
-base.archivesName = "$modId-fabric"
+base.archivesName = "$modId-fabric-quilt"
 
 // The other loaders' adapters and metadata are not part of this node.
 sourceSets.main {
-    java.exclude("ru/wilyfox/lacmus/neoforge/**")
+    java.exclude("ru/wilyfox/lacmus/neoforge/**", "ru/wilyfox/lacmus/forge/**")
 }
 
 dependencies {
@@ -56,8 +56,10 @@ tasks.processResources {
             "loader" to prop("deps.fabric_loader"),
         )
     inputs.properties(props)
+    inputs.property("mixin_level", "JAVA_25")
     filesMatching("fabric.mod.json") { expand(props) }
-    exclude("META-INF/neoforge.mods.toml")
+    filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_25") }
+    exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml", "pack.mcmeta")
 }
 
 tasks.jar {
