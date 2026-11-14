@@ -8,9 +8,6 @@ public final class ClientStats {
   /** Window of the frame and tick statistics, in client ticks. */
   public static final int WINDOW_TICKS = 20;
 
-  /** A client tick that takes this long on average holds the game below 20 ticks a second. */
-  public static final long TICK_ALARM_NANOS = 50_000_000L;
-
   private final QueueDelay queue = new QueueDelay();
   private final WindowStats frames = new WindowStats(WINDOW_TICKS);
   private final WindowStats ticks = new WindowStats(WINDOW_TICKS);

@@ -1,15 +1,17 @@
 package ru.wilyfox.lacmus.hud;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import ru.wilyfox.lacmus.core.HudSettings;
 import ru.wilyfox.lacmus.core.NetFormat;
 import ru.wilyfox.lacmus.core.NetView;
 
 /**
- * Three lines in the top-left corner, in the spirit of {@code net_graph 1}, one per side of the
- * game:
+ * The HUD, in the spirit of {@code net_graph}. The full mode has one line per side of the game:
  *
  * <pre>
  * fps 144 (max 18 ms)  tick 2.1 ms  queue 4 ms           the client
@@ -17,13 +19,16 @@ import ru.wilyfox.lacmus.core.NetView;
  * tps ≈19.9                                              the server
  * </pre>
  *
- * While nothing arrives from a server, the round trip says for how long, and later how long until
+ * The easy-to-read mode has one: {@code fps 144 ping 42 ms ±3 ms}. The latency is {@code rtt}, the
+ * newest round trip, or {@code ping}, the mean of the last five seconds, as set.
+ *
+ * <p>While nothing arrives from a server, the latency says for how long, and later how long until
  * the game gives up: {@code rtt stall 8.0 s timeout in 22 s}. In single player, where there is no
  * round trip, the pause is shown on its own: {@code rtt — no data 8.0 s}. A line that reports a
- * problem on its side turns entirely to the alarm colour.
+ * problem on its side turns entirely to the alarm colour, unless alarms are off.
  *
- * <p>What to show is decided by {@link NetView}; the lines are rebuilt once per client tick and a
- * frame only draws them.
+ * <p>What to show is decided by {@link NetView} and {@link HudSettings}; the lines are rebuilt once
+ * per client tick and a frame only draws them.
  */
 public final class NetHud {
   private static final String KEY = "hud.lacmus.";
@@ -32,19 +37,27 @@ public final class NetHud {
   private static final int LINE_GAP = 1;
   private static final String GAP = "  ";
 
-  private Component[] lines = new Component[0];
+  private final List<Component> lines = new ArrayList<>(3);
   private int width;
 
-  public void update(Font font, NetView view) {
-    Component client = clientLine(view);
-    Component network = networkLine(view);
-    Component server = serverLine(view);
-    lines =
-        new Component[] {
-          view.clientAlarm() ? alarm(client) : client,
-          view.connectionAlarm() ? alarm(network) : network,
-          view.tickAlarm() ? alarm(server) : server
-        };
+  public void update(Font font, NetView view, HudSettings settings) {
+    lines.clear();
+    boolean alarms = settings.alarms;
+    if (settings.mode == HudSettings.Mode.EASY) {
+      MutableComponent line = fps(view);
+      line.append(GAP);
+      latency(line, view, settings, true);
+      lines.add(alarms && view.connectionAlarm() ? alarm(line) : line);
+    } else {
+      Component client = clientLine(view, settings);
+      Component network = networkLine(view, settings);
+      lines.add(alarms && view.clientAlarm() ? alarm(client) : client);
+      lines.add(alarms && view.connectionAlarm() ? alarm(network) : network);
+      if (settings.showServer) {
+        Component server = serverLine(view);
+        lines.add(alarms && view.tickAlarm() ? alarm(server) : server);
+      }
+    }
     width = 0;
     for (Component line : lines) {
       width = Math.max(width, font.width(line));
@@ -52,44 +65,85 @@ public final class NetHud {
   }
 
   public void reset() {
-    lines = new Component[0];
+    lines.clear();
     width = 0;
   }
 
-  public void extract(GuiGraphicsExtractor graphics, Font font) {
-    if (lines.length == 0) {
+  public void extract(GuiGraphicsExtractor graphics, Font font, HudSettings settings) {
+    if (lines.isEmpty()) {
       return;
     }
-    int x = MARGIN + PADDING;
-    int y = MARGIN + PADDING;
+    float scale = settings.scale / 100f;
     int lineStep = font.lineHeight + LINE_GAP;
-    int height = lines.length * lineStep - LINE_GAP;
-    graphics.fill(MARGIN, MARGIN, x + width + PADDING, y + height + PADDING, LacmusTheme.PANEL);
+    int panelWidth = width + 2 * PADDING;
+    int panelHeight = lines.size() * lineStep - LINE_GAP + 2 * PADDING;
+    float left =
+        switch (settings.anchor) {
+          case TOP_LEFT, BOTTOM_LEFT -> MARGIN;
+          case TOP_RIGHT, BOTTOM_RIGHT -> graphics.guiWidth() - MARGIN - panelWidth * scale;
+        };
+    float top =
+        switch (settings.anchor) {
+          case TOP_LEFT, TOP_RIGHT -> MARGIN;
+          case BOTTOM_LEFT, BOTTOM_RIGHT -> graphics.guiHeight() - MARGIN - panelHeight * scale;
+        };
+    graphics.pose().pushMatrix();
+    graphics.pose().translate(left, top);
+    graphics.pose().scale(scale, scale);
+    int alpha = Math.round(settings.panelOpacity * 255 / 100f);
+    if (alpha > 0) {
+      graphics.fill(0, 0, panelWidth, panelHeight, alpha << 24 | LacmusTheme.PANEL_RGB);
+    }
+    int y = PADDING;
     for (Component line : lines) {
-      graphics.text(font, line, x, y, LacmusTheme.TEXT_ARGB, false);
+      graphics.text(font, line, PADDING, y, LacmusTheme.TEXT_ARGB, false);
       y += lineStep;
     }
+    graphics.pose().popMatrix();
+  }
+
+  private static MutableComponent fps(NetView view) {
+    return label("fps").append(" ").append(number(NetFormat.whole(view.fps())));
   }
 
   /** The client itself: frames, ticks, and how long packets wait for it. */
-  private static Component clientLine(NetView view) {
-    MutableComponent line = label("fps").append(" ").append(number(NetFormat.whole(view.fps())));
+  private static Component clientLine(NetView view, HudSettings settings) {
+    MutableComponent line = fps(view);
     String frameMax = NetFormat.millis(view.frameMaxMillis());
-    if (frameMax != null) {
+    if (settings.showFrameMax && frameMax != null) {
       line.append(" ").append(text("frame_max", frameMax));
     }
-    line.append(GAP).append(label("client_tick")).append(" ");
-    String tick = NetFormat.millis(view.clientTickMillis());
-    line.append(tick == null ? unknown() : text("unit.ms", tick));
-    line.append(GAP).append(label("queue")).append(" ");
-    String queue = NetFormat.millis(view.queueMillis());
-    line.append(queue == null ? unknown() : text("unit.ms", queue));
+    if (settings.showClientTick) {
+      line.append(GAP).append(label("client_tick")).append(" ");
+      String tick = NetFormat.millis(view.clientTickMillis());
+      line.append(tick == null ? unknown() : text("unit.ms", tick));
+    }
+    if (settings.showQueue) {
+      line.append(GAP).append(label("queue")).append(" ");
+      String queue = NetFormat.millis(view.queueMillis());
+      line.append(queue == null ? unknown() : text("unit.ms", queue));
+    }
     return line;
   }
 
-  /** The connection: round trip or stall, and traffic both ways. */
-  private static Component networkLine(NetView view) {
-    MutableComponent line = label("rtt").append(" ");
+  /** The connection: latency or stall, and traffic both ways. */
+  private static Component networkLine(NetView view, HudSettings settings) {
+    MutableComponent line = Component.empty();
+    latency(line, view, settings, settings.showJitter);
+    if (settings.showBytes || settings.showPackets) {
+      line.append(GAP).append(label("in")).append(" ");
+      traffic(line, view.inboundBytesPerSecond(), view.inboundPacketsPerSecond(), view, settings);
+      line.append(GAP).append(label("out")).append(" ");
+      traffic(line, view.outboundBytesPerSecond(), view.outboundPacketsPerSecond(), view, settings);
+    }
+    return line;
+  }
+
+  /** {@code rtt} or {@code ping}, with the jitter, a stall, or a pause in single player. */
+  private static void latency(
+      MutableComponent line, NetView view, HudSettings settings, boolean jitter) {
+    boolean ping = settings.latency == HudSettings.Latency.PING;
+    line.append(label(ping ? "ping" : "rtt")).append(" ");
     String stall = NetFormat.seconds(view.stallMillis());
     switch (view.rtt()) {
       case STALL -> {
@@ -100,10 +154,11 @@ public final class NetHud {
         }
       }
       case VALUE -> {
-        line.append(text("unit.ms", NetFormat.millis(view.rttMillis())));
-        String jitter = NetFormat.millis(view.jitterMillis());
-        if (jitter != null) {
-          line.append(" ").append(text("jitter", jitter));
+        String value = NetFormat.millis(ping ? view.pingMillis() : view.rttMillis());
+        line.append(value == null ? unknown() : text("unit.ms", value));
+        String spread = NetFormat.millis(view.jitterMillis());
+        if (jitter && spread != null) {
+          line.append(" ").append(text("jitter", spread));
         }
       }
       case UNKNOWN, NONE -> {
@@ -114,13 +169,23 @@ public final class NetHud {
         }
       }
     }
-    line.append(GAP).append(label("in")).append(" ");
-    line.append(bytes(view.inboundBytesPerSecond(), view.bytesKnown())).append(" ");
-    line.append(packets(view.inboundPacketsPerSecond()));
-    line.append(GAP).append(label("out")).append(" ");
-    line.append(bytes(view.outboundBytesPerSecond(), view.bytesKnown())).append(" ");
-    line.append(packets(view.outboundPacketsPerSecond()));
-    return line;
+  }
+
+  private static void traffic(
+      MutableComponent line,
+      double bytesPerSecond,
+      double packetsPerSecond,
+      NetView view,
+      HudSettings settings) {
+    if (settings.showBytes) {
+      line.append(bytes(bytesPerSecond, view.bytesKnown()));
+      if (settings.showPackets) {
+        line.append(" ");
+      }
+    }
+    if (settings.showPackets) {
+      line.append(packets(packetsPerSecond));
+    }
   }
 
   /** The server: how fast it ticks. */

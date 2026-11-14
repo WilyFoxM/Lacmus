@@ -18,8 +18,8 @@ Lacmus is in early development.
 
 ## What it shows
 
-Three lines in the top-left corner, one for each side of the game, hidden while the F3 screen is
-open:
+Three lines in the top-left corner by default, one for each side of the game, hidden while the
+F3 screen is open:
 
 ```
 fps 144 (max 18 ms)  tick 2.1 ms  queue 4 ms
@@ -53,8 +53,8 @@ tps ≈19.9
   so a stall points at the connection rather than at a slow server.
 - **no data**: the same pause in single player, where there is no round trip.
 
-To time the round trip, Lacmus sends two of the game's own ping requests per second while the
-HUD is shown on a server. The game itself sends them only while its network chart is open; then
+To time the round trip, Lacmus sends two of the game's own ping requests per second (a
+setting) while the HUD is shown on a server. The game itself sends them only while its network chart is open; then
 Lacmus times the game's requests and sends none.
 
 **The server**
@@ -72,9 +72,20 @@ more or the client tick takes 50 ms or more, the connection line during a stall 
 server line when the server falls below 90 % of its rate or its time is late. **—** means the
 value is unknown.
 
-## Controls
+## Settings
 
-**Show or hide Lacmus** in Controls → Lacmus. It has no key by default.
+**F6** opens the settings; **Show or hide Lacmus** in Controls → Lacmus has no key by default.
+Changes apply and save at once, in `config/lacmus.json`.
+
+- **General**: show the HUD; the mode, **Full** (every metric) or **Easy to read** (one line:
+  fps, latency and jitter); the latency, **rtt** (the newest round trip) or **ping** (the mean
+  round trip of the last 5 seconds); the screen corner; the size; the background opacity.
+- **Metrics**: in the full mode, each part on or off: the longest frame, the client tick, the
+  packet queue, the jitter, bytes, packets and the server line.
+- **Alarms**: red lines on or off, and when they turn red: packets waiting 250 ms, a client
+  tick of 50 ms, a server below 90 % of its rate.
+- **Network**: the HUD's own ping requests on or off, and how many a second (2 by default).
+  Off, the latency is known only while the F3 network chart is open.
 
 ## Requirements
 

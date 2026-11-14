@@ -11,18 +11,16 @@ import net.minecraft.util.Util;
  * while the chart is open: then the game's requests are measured instead.
  */
 public final class Pinger {
-  /** Two requests per second. */
-  public static final long INTERVAL_NANOS = 500_000_000L;
-
   private long lastSentNanos;
   private boolean sentAny;
 
-  public void tick(Minecraft minecraft, ClientPacketListener listener, long nanos) {
+  public void tick(
+      Minecraft minecraft, ClientPacketListener listener, long nanos, long intervalNanos) {
     if (listener.getConnection().isMemoryConnection()
         || minecraft.getDebugOverlay().showNetworkCharts()) {
       return;
     }
-    if (sentAny && nanos - lastSentNanos < INTERVAL_NANOS) {
+    if (sentAny && nanos - lastSentNanos < intervalNanos) {
       return;
     }
     sentAny = true;

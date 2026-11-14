@@ -19,6 +19,9 @@ public final class NetProbe {
   /** Round trips kept for the average and the jitter. */
   public static final int RTT_SAMPLES = 16;
 
+  /** Window of the averaged round trip, shown as {@code ping}. */
+  public static final long PING_WINDOW_NANOS = 5_000_000_000L;
+
   /**
    * Silence shorter than this is normal: a healthy server sends its time once a second, and pongs
    * to the probe's requests arrive twice a second.
@@ -53,6 +56,8 @@ public final class NetProbe {
   private final RateMeter inboundPacketRate = new RateMeter(RATE_WINDOW_NANOS, RATE_SAMPLES);
   private final RateMeter outboundPacketRate = new RateMeter(RATE_WINDOW_NANOS, RATE_SAMPLES);
   private final SampleWindow rttMillis = new SampleWindow(RTT_SAMPLES);
+  // The game's own requests come every tick while its chart is open: room for 5 s of them.
+  private final TimedSamples recentRtt = new TimedSamples(128);
   private boolean hasRtt;
   private long lastRttNanos;
   private long now;
@@ -115,8 +120,10 @@ public final class NetProbe {
       if (hasRtt && nanos - lastRttNanos > RTT_STALE_NANOS) {
         // A long gap: the old trips say nothing about the new ones.
         rttMillis.clear();
+        recentRtt.clear();
       }
       rttMillis.add(roundTrip / 1e6);
+      recentRtt.add(nanos, roundTrip / 1e6);
       hasRtt = true;
       lastRttNanos = nanos;
     }
@@ -141,6 +148,14 @@ public final class NetProbe {
   /** The newest round trip in milliseconds, or NaN when there is none or it is stale. */
   public double rttMillis() {
     return rttFresh() ? rttMillis.last() : Double.NaN;
+  }
+
+  /**
+   * The mean round trip of the last {@link #PING_WINDOW_NANOS} in milliseconds, or NaN when there
+   * is none or it is stale.
+   */
+  public double pingMillis() {
+    return rttFresh() ? recentRtt.meanSince(now - PING_WINDOW_NANOS) : Double.NaN;
   }
 
   /** Jitter of the recent round trips in milliseconds, or NaN when unknown or stale. */
