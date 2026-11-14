@@ -57,7 +57,10 @@ tasks.processResources {
             "forge" to prop("deps.forge_major"),
         )
     inputs.properties(props)
+    inputs.property("mixin_level", "JAVA_21")
     filesMatching("META-INF/mods.toml") { expand(props) }
+    // Forge ships Mixin 0.8.7, which knows compatibility levels up to JAVA_21.
+    filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_21") }
     exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
 }
 

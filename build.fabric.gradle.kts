@@ -56,7 +56,9 @@ tasks.processResources {
             "loader" to prop("deps.fabric_loader"),
         )
     inputs.properties(props)
+    inputs.property("mixin_level", "JAVA_25")
     filesMatching("fabric.mod.json") { expand(props) }
+    filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_25") }
     exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
 }
 
