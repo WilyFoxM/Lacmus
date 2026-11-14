@@ -44,7 +44,7 @@
   "lacmus.managed": "Недоступно",
   "lacmus.narration.setting": "%s: %s",
   "lacmus.hint.toggle": "Щелчок или Enter — переключить. Наведите курсор, чтобы узнать подробнее.",
-  "lacmus.hint.number": "Тяните значение влево/вправо. Shift — точнее. С клавиатуры: стрелки влево/вправо.",
+  "lacmus.hint.number": "Тяните значение влево/вправо. С Shift — по 1. С клавиатуры: стрелки влево/вправо, с Shift — по 1.",
   "lacmus.hint.choice": "Щелчок или Enter — следующий вариант. С клавиатуры: стрелки влево/вправо.",
   "lacmus.unit.percent": "%s%%",
   "lacmus.unit.ms": "%s мс",

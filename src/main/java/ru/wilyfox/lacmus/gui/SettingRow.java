@@ -159,18 +159,16 @@ final class SettingRow extends Button {
   protected void onDrag(MouseButtonEvent event, double dx, double dy) {
     if (!dragging) return;
     // MouseHandler retains the mouse-down modifiers throughout the drag.
-    var window = Minecraft.getInstance().getWindow();
-    boolean fine =
-        InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT)
-            || InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
-    dragRemainder += (event.x() - dragX) / (fine ? 12 : 3);
+    boolean fine = shiftHeld();
+    dragRemainder += (event.x() - dragX) / 3;
     dragX = event.x();
     int steps = (int) dragRemainder;
     dragRemainder -= steps;
+    // Shift changes the value by one unit per step instead of by the setting's step.
     int next =
         (int)
             Math.clamp(
-                (long) option.number().getAsInt() + (long) steps * option.step(),
+                (long) option.number().getAsInt() + (long) steps * (fine ? 1 : option.step()),
                 option.min(),
                 option.max());
     option.setNumber().accept(next);
@@ -193,14 +191,25 @@ final class SettingRow extends Button {
   @Override
   public boolean keyPressed(KeyEvent event) {
     if (active && isFocused() && (event.isLeft() || event.isRight())) {
-      if (option.kind() != SettingsCatalog.Kind.TOGGLE
+      int direction = event.isLeft() ? -1 : 1;
+      if (option.kind() == SettingsCatalog.Kind.NUMBER && (event.hasShiftDown() || shiftHeld())) {
+        option
+            .setNumber()
+            .accept(Math.clamp(option.number().getAsInt() + direction, option.min(), option.max()));
+      } else if (option.kind() != SettingsCatalog.Kind.TOGGLE
           || option.selected().getAsBoolean() != event.isRight()) {
-        option.change().accept(event.isLeft() ? -1 : 1);
+        option.change().accept(direction);
       }
       owner.saveChanges();
       refresh();
       return true;
     }
     return super.keyPressed(event);
+  }
+
+  private static boolean shiftHeld() {
+    var window = Minecraft.getInstance().getWindow();
+    return InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT)
+        || InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
   }
 }

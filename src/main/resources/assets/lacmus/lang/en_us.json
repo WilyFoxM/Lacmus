@@ -44,7 +44,7 @@
   "lacmus.managed": "Unavailable",
   "lacmus.narration.setting": "%s: %s",
   "lacmus.hint.toggle": "Click or press Enter to toggle. Hover for details.",
-  "lacmus.hint.number": "Drag the value left/right. Hold Shift for finer adjustment. Keyboard: left/right arrows.",
+  "lacmus.hint.number": "Drag the value left/right. Hold Shift to change it by 1. Keyboard: left/right arrows, with Shift by 1.",
   "lacmus.hint.choice": "Click or press Enter for the next choice. Keyboard: left/right arrows.",
   "lacmus.unit.percent": "%s%%",
   "lacmus.unit.ms": "%s ms",
