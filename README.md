@@ -14,7 +14,7 @@
 
 A small client-side network graph HUD for Minecraft, in the spirit of `net_graph`.
 
-Lacmus is in early development.
+This is the first release, and it is a beta.
 
 ## What it shows
 
@@ -89,11 +89,19 @@ Changes apply and save at once, in `config/lacmus.json`.
 
 ## Requirements
 
-- Minecraft 26.2
+- Minecraft 26.2 and Java 25
 - Fabric Loader 0.19.3 or newer with Fabric API, Quilt Loader with Fabric API, NeoForge
   26.2.0.93 or newer, or Forge 65 or newer
 
 Lacmus is a client-side mod: a server does not need it.
+
+## Compatibility
+
+- Other versions of Minecraft 26.x are not supported yet: 26.1 and 26.3 changed parts of the
+  game that Lacmus uses.
+- I play with Sodium and Iris, with shaders and without, and Lacmus works with them. It draws
+  its lines as part of the game's own HUD.
+- Other mods have not been tested.
 
 ## License
 
