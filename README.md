@@ -40,7 +40,9 @@ tps ≈19.9
   so a stall points at the connection rather than at a slow server.
 - **no data**: the same pause in single player, where there is no round trip.
 - **tps**: an estimate of how many ticks a second the server runs, from the time it sends once
-  every 20 ticks anyway, averaged over 5 seconds. When the server aims at a rate other than 20
+  every 20 ticks anyway, over the last 5 seconds. Time that arrives late, as it does when a proxy
+  switches servers, does not push the estimate above the real rate; for about two seconds after
+  joining a server it shows **—** instead. When the server aims at a rate other than 20
   (`/tick rate`), it is shown too: `≈9.9 of 10`. **frozen** when the server froze its ticks,
   **late** when its next time is overdue, **paused** in a paused single-player game. Unknown
   during a stall: then the connection, not the server, decides what arrives.
