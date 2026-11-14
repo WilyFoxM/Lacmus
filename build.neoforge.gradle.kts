@@ -13,7 +13,7 @@ sourceSets.main {
     // The metrics core is plain Java: compiled into the mod, so NeoForge loads it with the mod.
     java.srcDir(rootProject.file("core/src/main/java"))
     // The other loaders' adapters are not part of this node.
-    java.exclude("ru/wilyfox/lacmus/fabric/**")
+    java.exclude("ru/wilyfox/lacmus/fabric/**", "ru/wilyfox/lacmus/forge/**")
 }
 
 neoForge {
@@ -55,8 +55,10 @@ tasks.processResources {
             "neoforge" to prop("deps.neoforge"),
         )
     inputs.properties(props)
+    inputs.property("mixin_level", "JAVA_25")
     filesMatching("META-INF/neoforge.mods.toml") { expand(props) }
-    exclude("fabric.mod.json")
+    filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_25") }
+    exclude("fabric.mod.json", "META-INF/mods.toml", "pack.mcmeta")
 }
 
 tasks.jar {
