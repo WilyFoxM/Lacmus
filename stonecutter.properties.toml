@@ -18,3 +18,9 @@ deps.fabric_api = "0.161.0+26.2"
 # Compatibility range written into neoforge.mods.toml.
 mod.mc_compat = "[26.2, 26.3)"
 deps.neoforge = "26.2.0.93"
+
+[forge."26.2"]
+# Compatibility range written into mods.toml.
+mod.mc_compat = "[26.2, 26.3)"
+deps.forge = "26.2-65.1.6"
+deps.forge_major = "65"

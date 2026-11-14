@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[${forge},)"
+license = "MIT"
+issueTrackerURL = "https://github.com/WilyFoxM/Lacmus/issues"
+
+[[mods]]
+modId = "${id}"
+version = "${version}"
+displayName = "${name}"
+authors = "WilyFox"
+description = "A small network graph HUD."
+logoFile = "assets/lacmus/icon.png"
+displayURL = "https://github.com/WilyFoxM/Lacmus"
+# Client-side only: a server does not need it, and its version does not matter.
+displayTest = "IGNORE_ALL_VERSION"
+
+[[dependencies.${id}]]
+modId = "forge"
+mandatory = true
+versionRange = "[${forge},)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${minecraft}"
+ordering = "NONE"
+side = "CLIENT"

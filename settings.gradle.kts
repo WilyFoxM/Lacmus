@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         maven("https://maven.fabricmc.net/") { name = "Fabric" }
         maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
+        maven("https://maven.minecraftforge.net/") { name = "MinecraftForge" }
         maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
         mavenCentral()
         gradlePluginPortal()
@@ -11,6 +12,8 @@ pluginManagement {
         id("net.fabricmc.fabric-loom") version "1.17.21"
         // NeoForge's ModDevGradle.
         id("net.neoforged.moddev") version "2.0.148"
+        // Forge's ForgeGradle 7.
+        id("net.minecraftforge.gradle") version "7.0.40"
     }
 }
 
@@ -27,7 +30,7 @@ stonecutter {
             }
         }
 
-        match("26.2", "fabric", "neoforge")
+        match("26.2", "fabric", "neoforge", "forge")
         vcsVersion = "26.2-fabric"
     }
 }

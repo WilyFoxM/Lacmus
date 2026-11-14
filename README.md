@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/WilyFoxM/Lacmus/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/WilyFoxM/Lacmus/build.yml?branch=main&label=build&labelColor=272727" alt="Build"></a>
   <img src="https://img.shields.io/badge/Minecraft-26.2-d1495b?labelColor=272727" alt="Minecraft 26.2">
-  <img src="https://img.shields.io/badge/loader-Fabric%20%7C%20Quilt%20%7C%20NeoForge-d1495b?labelColor=272727" alt="Fabric | Quilt | NeoForge">
+  <img src="https://img.shields.io/badge/loader-Fabric%20%7C%20Quilt%20%7C%20NeoForge%20%7C%20Forge-d1495b?labelColor=272727" alt="Fabric | Quilt | NeoForge | Forge">
   <img src="https://img.shields.io/badge/Java-25-d1495b?labelColor=272727" alt="Java 25">
   <img src="https://img.shields.io/badge/license-MIT-d1495b?labelColor=272727" alt="MIT">
 </p>
@@ -90,8 +90,8 @@ Changes apply and save at once, in `config/lacmus.json`.
 ## Requirements
 
 - Minecraft 26.2
-- Fabric Loader 0.19.3 or newer with Fabric API, Quilt Loader with Fabric API, or NeoForge
-  26.2.0.93 or newer
+- Fabric Loader 0.19.3 or newer with Fabric API, Quilt Loader with Fabric API, NeoForge
+  26.2.0.93 or newer, or Forge 65 or newer
 
 Lacmus is a client-side mod: a server does not need it.
 

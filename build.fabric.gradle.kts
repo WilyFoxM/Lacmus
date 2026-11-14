@@ -15,7 +15,7 @@ base.archivesName = "$modId-fabric"
 
 // The other loaders' adapters and metadata are not part of this node.
 sourceSets.main {
-    java.exclude("ru/wilyfox/lacmus/neoforge/**")
+    java.exclude("ru/wilyfox/lacmus/neoforge/**", "ru/wilyfox/lacmus/forge/**")
 }
 
 dependencies {
@@ -57,7 +57,7 @@ tasks.processResources {
         )
     inputs.properties(props)
     filesMatching("fabric.mod.json") { expand(props) }
-    exclude("META-INF/neoforge.mods.toml")
+    exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
 }
 
 tasks.jar {
