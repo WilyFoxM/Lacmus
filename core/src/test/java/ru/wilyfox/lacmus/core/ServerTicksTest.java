@@ -57,8 +57,8 @@ class ServerTicksTest {
       ticks.timeSync(i * 20L, arrivals[i] * MS);
       ticks.update(arrivals[i] * MS);
     }
-    // The window reaches back to the packet at 0 ms: 120 ticks in 6 s, the jitter cancels out.
-    assertEquals(20, ticks.ticksPerSecond(), 1e-9);
+    // Single arrivals 80 ms off move a 5 s estimate by under 2 %.
+    assertEquals(20, ticks.ticksPerSecond(), 0.4);
   }
 
   @Test
@@ -120,5 +120,77 @@ class ServerTicksTest {
     writer.join();
     pair.read();
     assertEquals(writes, pair.first());
+  }
+
+  /** Feeds one packet and returns the estimate after it. */
+  private static double at(ServerTicks ticks, long gameTime, long arrivalMs) {
+    ticks.timeSync(gameTime, arrivalMs * MS);
+    ticks.update(arrivalMs * MS);
+    return ticks.ticksPerSecond();
+  }
+
+  @Test
+  void heldUpPacketsAfterJoiningDoNotOvershoot() {
+    // Like a proxy switching servers: the packets sent at 0, 1 and 2 s are held until 2.2 s,
+    // then the rest arrive on time.
+    ServerTicks ticks = new ServerTicks();
+    at(ticks, 0, 2_200);
+    at(ticks, 20, 2_200);
+    at(ticks, 40, 2_200);
+    for (int i = 3; i <= 12; i++) {
+      double estimate = at(ticks, i * 20L, i * 1000L);
+      int second = i;
+      assertTrue(
+          Double.isNaN(estimate) || Math.abs(estimate - 20) < 0.01,
+          () -> "at " + second + " s: " + estimate);
+    }
+    assertEquals(20, ticks.ticksPerSecond(), 0.01);
+  }
+
+  @Test
+  void oneLatePacketIsNeverTheStart() {
+    ServerTicks ticks = new ServerTicks();
+    for (int i = 0; i <= 12; i++) {
+      long arrival = i * 1000L + (i == 4 ? 400 : 0);
+      double estimate = at(ticks, i * 20L, arrival);
+      int second = i;
+      if (i != 4 && !Double.isNaN(estimate)) {
+        assertEquals(20, estimate, 0.01, () -> "at " + second + " s");
+      }
+    }
+  }
+
+  @Test
+  void aLateNewestPacketPullsTheEstimateDown() {
+    ServerTicks ticks = new ServerTicks();
+    for (int i = 0; i <= 5; i++) {
+      at(ticks, i * 20L, i * 1000L);
+    }
+    // The server stalls and skips ticks: the next time packet comes 4 s late and only 20 ticks on.
+    double estimate = at(ticks, 120, 10_000);
+    assertTrue(estimate < 18, "lag shows: " + estimate);
+  }
+
+  @Test
+  void gameTimeGoingBackStartsOver() {
+    ServerTicks ticks = new ServerTicks();
+    for (int i = 0; i <= 5; i++) {
+      at(ticks, 10_000 + i * 20L, i * 1000L);
+    }
+    assertEquals(20, ticks.ticksPerSecond(), 0.01);
+    // Another server with an earlier game time.
+    assertTrue(Double.isNaN(at(ticks, 500, 6_000)));
+    at(ticks, 520, 7_000);
+    assertEquals(20, at(ticks, 540, 8_000), 0.01);
+  }
+
+  @Test
+  void sprintingServerShowsItsSpeed() {
+    ServerTicks ticks = new ServerTicks();
+    // 20 ticks every 0.25 s: 80 ticks a second.
+    for (int i = 0; i <= 20; i++) {
+      at(ticks, i * 20L, i * 250L);
+    }
+    assertEquals(80, ticks.ticksPerSecond(), 0.01);
   }
 }
