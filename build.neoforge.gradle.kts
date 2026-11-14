@@ -58,7 +58,7 @@ tasks.processResources {
     inputs.property("mixin_level", "JAVA_25")
     filesMatching("META-INF/neoforge.mods.toml") { expand(props) }
     filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_25") }
-    exclude("fabric.mod.json", "META-INF/mods.toml")
+    exclude("fabric.mod.json", "META-INF/mods.toml", "pack.mcmeta")
 }
 
 tasks.jar {

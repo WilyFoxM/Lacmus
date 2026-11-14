@@ -61,6 +61,7 @@ tasks.processResources {
     filesMatching("META-INF/mods.toml") { expand(props) }
     // Forge ships Mixin 0.8.7, which knows compatibility levels up to JAVA_21.
     filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_21") }
+    // Forge reads the mod's resources only with a pack.mcmeta, in the format of its own template.
     exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
 }
 
