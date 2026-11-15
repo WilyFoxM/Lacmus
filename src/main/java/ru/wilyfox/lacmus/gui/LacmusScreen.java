@@ -315,7 +315,7 @@ public final class LacmusScreen extends Screen {
 
   @Override
   public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-    if (event.button() == 0
+    if (event.button() == InputConstants.MOUSE_BUTTON_LEFT
         && maxScroll > 0
         && event.x() >= contentX + contentWidth - 8
         && event.x() <= contentX + contentWidth
@@ -364,7 +364,7 @@ public final class LacmusScreen extends Screen {
 
   @Override
   public boolean mouseReleased(MouseButtonEvent event) {
-    if (event.button() == 0) {
+    if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
       scrollbarDragging = false;
       finishDrags();
     }
