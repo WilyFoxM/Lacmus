@@ -14,7 +14,7 @@
 
 A small client-side network graph HUD for Minecraft, in the spirit of `net_graph`.
 
-This is the first release, and it is a beta.
+Lacmus is in beta.
 
 ## What it shows
 
