@@ -5,7 +5,8 @@ plugins {
 fun prop(key: String): String = sc.properties.get<String>(key)
 
 val modId = prop("mod.id")
-version = "${prop("mod.version")}+${sc.current.version}"
+// The Minecraft part of the version names the releases the jar covers, such as 26.1.x.
+version = "${prop("mod.version")}+${prop("mod.mc_label")}"
 group = prop("mod.group")
 base.archivesName = "$modId-neoforge"
 
@@ -52,7 +53,7 @@ tasks.processResources {
             "name" to prop("mod.name"),
             "version" to version.toString(),
             "minecraft" to prop("mod.mc_compat"),
-            "neoforge" to prop("deps.neoforge"),
+            "neoforge" to prop("deps.neoforge_min"),
         )
     inputs.properties(props)
     inputs.property("mixin_level", "JAVA_25")

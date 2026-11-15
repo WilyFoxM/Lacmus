@@ -9,7 +9,8 @@ val coreMain = project(":core").the<SourceSetContainer>()["main"]
 fun prop(key: String): String = sc.properties.get<String>(key)
 
 val modId = prop("mod.id")
-version = "${prop("mod.version")}+${sc.current.version}"
+// The Minecraft part of the version names the releases the jar covers, such as 26.1.x.
+version = "${prop("mod.version")}+${prop("mod.mc_label")}"
 group = prop("mod.group")
 base.archivesName = "$modId-fabric-quilt"
 

@@ -89,11 +89,11 @@ Changes apply and save at once, in `config/lacmus.json`.
 
 ## Requirements
 
-- Minecraft 26.1, 26.2 or 26.3, and Java 25. Each has its own file. On Fabric, Quilt and
-  Forge the 26.1.2 file also runs on 26.1 and 26.1.1.
+- Minecraft 26.1, 26.2 or 26.3, and Java 25. Each has its own file; the 26.1.x file covers
+  26.1, 26.1.1 and 26.1.2.
 - Fabric Loader 0.19.3 or newer with Fabric API, or Quilt Loader with Fabric API
-- NeoForge 26.1.2.126 or newer for 26.1.2, 26.2.0.93 or newer for 26.2, 26.3.0.103 or newer
-  for 26.3. On NeoForge, 26.1 and 26.1.1 are not supported.
+- NeoForge 26.1.0.19-beta or newer for 26.1.x, 26.2.0.93 or newer for 26.2, 26.3.0.103 or
+  newer for 26.3
 - Forge 62 or newer for 26.1.x, 65 or newer for 26.2, 66 or newer for 26.3
 
 Lacmus is a client-side mod: a server does not need it.
