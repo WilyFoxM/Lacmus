@@ -1,10 +1,10 @@
 {
   "pack": {
     "description": "Lacmus resources",
-    "max_format": 107,
+    "max_format": ${pack_major},
     "min_format": [
-      107,
-      1
+      ${pack_major},
+      ${pack_minor}
     ]
   }
 }

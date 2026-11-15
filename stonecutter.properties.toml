@@ -5,9 +5,33 @@ mod.version = "0.2.0-dev.1"
 
 deps.fabric_loader = "0.19.3"
 
+["26.1.2"]
+# Minecraft releases to mark compatible on mod pages.
+mod.mc_releases = ["26.1.2"]
+# Data pack format of this release, for Forge's pack.mcmeta.
+mod.pack_major = "101"
+mod.pack_minor = "1"
+
+["fabric-quilt"."26.1.2"]
+# Built against 26.1.2; the same jar runs on 26.1 and 26.1.1.
+mod.mc_compat = "~26.1"
+deps.fabric_api = "0.155.3+26.1.2"
+
+[neoforge."26.1.2"]
+mod.mc_compat = "[26.1.2, 26.2)"
+deps.neoforge = "26.1.2.126"
+
+[forge."26.1.2"]
+# Built against 26.1.2; the same jar runs on Forge 62 (26.1) and 63 (26.1.1).
+mod.mc_compat = "[26.1, 26.2)"
+deps.forge = "26.1.2-64.1.6"
+deps.forge_major = "62"
+
 ["26.2"]
 # Minecraft releases to mark compatible on mod pages.
 mod.mc_releases = ["26.2"]
+mod.pack_major = "107"
+mod.pack_minor = "1"
 
 ["fabric-quilt"."26.2"]
 # Compatibility range written into fabric.mod.json.
@@ -27,6 +51,8 @@ deps.forge_major = "65"
 
 ["26.3"]
 mod.mc_releases = ["26.3"]
+mod.pack_major = "121"
+mod.pack_minor = "0"
 
 ["fabric-quilt"."26.3"]
 mod.mc_compat = "~26.3"
