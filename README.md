@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/WilyFoxM/Lacmus/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/WilyFoxM/Lacmus/build.yml?branch=main&label=build&labelColor=272727" alt="Build"></a>
-  <img src="https://img.shields.io/badge/Minecraft-26.2-d1495b?labelColor=272727" alt="Minecraft 26.2">
+  <img src="https://img.shields.io/badge/Minecraft-26.2%20%7C%2026.3-d1495b?labelColor=272727" alt="Minecraft 26.2 | 26.3">
   <img src="https://img.shields.io/badge/loader-Fabric%20%7C%20Quilt%20%7C%20NeoForge%20%7C%20Forge-d1495b?labelColor=272727" alt="Fabric | Quilt | NeoForge | Forge">
   <img src="https://img.shields.io/badge/Java-25-d1495b?labelColor=272727" alt="Java 25">
   <img src="https://img.shields.io/badge/license-MIT-d1495b?labelColor=272727" alt="MIT">
@@ -89,16 +89,16 @@ Changes apply and save at once, in `config/lacmus.json`.
 
 ## Requirements
 
-- Minecraft 26.2 and Java 25
-- Fabric Loader 0.19.3 or newer with Fabric API, Quilt Loader with Fabric API, NeoForge
-  26.2.0.93 or newer, or Forge 65 or newer
+- Minecraft 26.2 or 26.3, and Java 25. Each version has its own file.
+- Fabric Loader 0.19.3 or newer with Fabric API, or Quilt Loader with Fabric API
+- NeoForge 26.2.0.93 or newer for 26.2, 26.3.0.103 or newer for 26.3
+- Forge 65 or newer for 26.2, 66 or newer for 26.3
 
 Lacmus is a client-side mod: a server does not need it.
 
 ## Compatibility
 
-- Other versions of Minecraft 26.x are not supported yet: 26.1 and 26.3 changed parts of the
-  game that Lacmus uses.
+- Minecraft 26.1 is not supported yet: it differs in parts of the game that Lacmus uses.
 - I play with Sodium and Iris, with shaders and without, and Lacmus works with them. It draws
   its lines as part of the game's own HUD.
 - Other mods have not been tested.
