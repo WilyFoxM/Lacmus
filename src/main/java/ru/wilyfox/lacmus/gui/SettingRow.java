@@ -137,7 +137,7 @@ final class SettingRow extends Button {
 
   @Override
   protected boolean isValidClickButton(MouseButtonInfo button) {
-    return button.button() == 0;
+    return button.button() == InputConstants.MOUSE_BUTTON_LEFT;
   }
 
   @Override
@@ -150,7 +150,13 @@ final class SettingRow extends Button {
       dragRemainder = 0;
       return;
     }
-    option.change().accept(input instanceof MouseButtonEvent mouse && mouse.button() == 1 ? -1 : 1);
+    option
+        .change()
+        .accept(
+            input instanceof MouseButtonEvent mouse
+                    && mouse.button() == InputConstants.MOUSE_BUTTON_RIGHT
+                ? -1
+                : 1);
     owner.saveChanges();
     refresh();
   }
@@ -208,8 +214,6 @@ final class SettingRow extends Button {
   }
 
   private static boolean shiftHeld() {
-    var window = Minecraft.getInstance().getWindow();
-    return InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT)
-        || InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+    return Minecraft.getInstance().hasShiftDown();
   }
 }

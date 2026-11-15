@@ -1,5 +1,6 @@
 package ru.wilyfox.lacmus.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -314,7 +315,7 @@ public final class LacmusScreen extends Screen {
 
   @Override
   public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-    if (event.button() == 0
+    if (event.button() == InputConstants.MOUSE_BUTTON_LEFT
         && maxScroll > 0
         && event.x() >= contentX + contentWidth - 8
         && event.x() <= contentX + contentWidth
@@ -363,7 +364,7 @@ public final class LacmusScreen extends Screen {
 
   @Override
   public boolean mouseReleased(MouseButtonEvent event) {
-    if (event.button() == 0) {
+    if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
       scrollbarDragging = false;
       finishDrags();
     }
@@ -382,7 +383,7 @@ public final class LacmusScreen extends Screen {
 
   @Override
   public boolean keyPressed(KeyEvent event) {
-    if (event.hasControlDown() && event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_F) {
+    if (event.hasControlDown() && event.key() == InputConstants.KEY_F) {
       setFocused(search);
       return true;
     }
@@ -391,12 +392,11 @@ public final class LacmusScreen extends Screen {
       return true;
     }
     if (getFocused() != search
-        && (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN
-            || event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP)) {
+        && (event.key() == InputConstants.KEY_PAGEDOWN
+            || event.key() == InputConstants.KEY_PAGEUP)) {
       finishDrags();
       scroll +=
-          (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN ? 1 : -1)
-              * (viewportBottom - viewportTop);
+          (event.key() == InputConstants.KEY_PAGEDOWN ? 1 : -1) * (viewportBottom - viewportTop);
       positionRows();
       return true;
     }
