@@ -5,7 +5,8 @@ plugins {
 fun prop(key: String): String = sc.properties.get<String>(key)
 
 val modId = prop("mod.id")
-version = "${prop("mod.version")}+${sc.current.version}"
+// The Minecraft part of the version names the releases the jar covers, such as 26.1.x.
+version = "${prop("mod.version")}+${prop("mod.mc_label")}"
 group = prop("mod.group")
 base.archivesName = "$modId-forge"
 
@@ -58,10 +59,13 @@ tasks.processResources {
         )
     inputs.properties(props)
     inputs.property("mixin_level", "JAVA_21")
+    val pack = mapOf("pack_major" to prop("mod.pack_major"), "pack_minor" to prop("mod.pack_minor"))
+    inputs.properties(pack)
     filesMatching("META-INF/mods.toml") { expand(props) }
+    filesMatching("pack.mcmeta") { expand(pack) }
     // Forge ships Mixin 0.8.7, which knows compatibility levels up to JAVA_21.
     filesMatching("lacmus.mixins.json") { expand("mixin_level" to "JAVA_21") }
-    // Forge reads the mod's resources only with a pack.mcmeta, in the format of its own template.
+    // Forge reads the mod's resources only with a pack.mcmeta, in the data pack format of the game.
     exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
 }
 

@@ -38,6 +38,9 @@ dependencies {
 
 val javaSources = fileTree(rootDir) {
     include("src/**/*.java", "core/src/**/*.java")
+    // Version seams hold Stonecutter conditions (`//? if`), which google-java-format would turn
+    // into plain comments (`// ? if`).
+    exclude("src/main/java/ru/wilyfox/lacmus/compat/**")
 }
 
 fun registerFormat(name: String, description: String, vararg mode: String) =

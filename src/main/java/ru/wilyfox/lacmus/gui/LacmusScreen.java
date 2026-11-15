@@ -10,12 +10,14 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import ru.wilyfox.lacmus.Lacmus;
 import ru.wilyfox.lacmus.LacmusClient;
+import ru.wilyfox.lacmus.compat.Screens;
 import ru.wilyfox.lacmus.config.LacmusConfig;
 
 /** Standalone settings: categories, global search and clipped, accessible controls. */
@@ -108,7 +110,7 @@ public final class LacmusScreen extends Screen {
             Component.translatable(SettingsCatalog.PREFIX + "reset"),
             () -> {
               finishDrags();
-              minecraft.gui.setScreen(new ResetConfirmation());
+              Screens.open(minecraft, new ResetConfirmation());
             },
             () -> false));
     done =
@@ -371,10 +373,18 @@ public final class LacmusScreen extends Screen {
     return super.mouseReleased(event);
   }
 
+  /** The focused component at the end of {@code path}; the same walk works in every 26.x. */
+  private static GuiEventListener leaf(ComponentPath path) {
+    while (path instanceof ComponentPath.Path node) {
+      path = node.childPath();
+    }
+    return path.component();
+  }
+
   @Override
   protected void changeFocus(ComponentPath path) {
     super.changeFocus(path);
-    if (path != null && path.leafComponent() instanceof SettingRow row) {
+    if (path != null && leaf(path) instanceof SettingRow row) {
       if (row.getY() < viewportTop) scroll -= viewportTop - row.getY();
       if (row.getBottom() > viewportBottom) scroll += row.getBottom() - viewportBottom;
       positionRows();
@@ -419,7 +429,7 @@ public final class LacmusScreen extends Screen {
   @Override
   public void onClose() {
     finishDrags();
-    if (saveChanges()) minecraft.gui.setScreen(parent);
+    if (saveChanges()) Screens.open(minecraft, parent);
   }
 
   private final class ResetConfirmation extends Screen {
@@ -481,7 +491,7 @@ public final class LacmusScreen extends Screen {
 
     @Override
     public void onClose() {
-      minecraft.gui.setScreen(LacmusScreen.this);
+      Screens.open(minecraft, LacmusScreen.this);
     }
   }
 }

@@ -9,6 +9,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import ru.wilyfox.lacmus.compat.Screens;
 import ru.wilyfox.lacmus.config.LacmusConfig;
 import ru.wilyfox.lacmus.core.ClientStats;
 import ru.wilyfox.lacmus.core.HudSettings;
@@ -93,12 +94,12 @@ public final class LacmusClient {
       toggle = !toggle;
     }
     // Presses while another screen is open are discarded, never queued.
-    if (minecraft.player != null && minecraft.gui.screen() == null) {
+    if (minecraft.player != null && Screens.current(minecraft) == null) {
       if (toggle) {
         toggle(minecraft);
       }
       if (open) {
-        minecraft.gui.setScreen(new LacmusScreen(null));
+        Screens.open(minecraft, new LacmusScreen(null));
       }
     }
 
@@ -131,9 +132,10 @@ public final class LacmusClient {
     } catch (RuntimeException failure) {
       Lacmus.LOGGER.error("Could not save settings", failure);
     }
-    minecraft.gui.hud.setOverlayMessage(
-        Component.translatable(Lacmus.MOD_ID + (settings.visible ? ".toggled.on" : ".toggled.off")),
-        false);
+    Screens.overlayMessage(
+        minecraft,
+        Component.translatable(
+            Lacmus.MOD_ID + (settings.visible ? ".toggled.on" : ".toggled.off")));
   }
 
   /** The probe of the current connection, or {@code null} outside a world. Client thread. */
