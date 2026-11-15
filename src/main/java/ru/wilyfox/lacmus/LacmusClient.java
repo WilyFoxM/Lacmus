@@ -9,7 +9,6 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 import ru.wilyfox.lacmus.config.LacmusConfig;
 import ru.wilyfox.lacmus.core.ClientStats;
 import ru.wilyfox.lacmus.core.HudSettings;
@@ -37,18 +36,12 @@ public final class LacmusClient {
   /** Opens the settings; F6 by default. */
   public static final KeyMapping OPEN_KEY =
       new KeyMapping(
-          "key." + Lacmus.MOD_ID + ".open_settings",
-          InputConstants.Type.KEYSYM,
-          GLFW.GLFW_KEY_F6,
-          KEY_CATEGORY);
+          "key." + Lacmus.MOD_ID + ".open_settings", InputConstants.KEY_F6, KEY_CATEGORY);
 
   /** Shows or hides the HUD; unbound by default. */
   public static final KeyMapping TOGGLE_KEY =
       new KeyMapping(
-          "key." + Lacmus.MOD_ID + ".toggle",
-          InputConstants.Type.KEYSYM,
-          InputConstants.UNKNOWN.getValue(),
-          KEY_CATEGORY);
+          "key." + Lacmus.MOD_ID + ".toggle", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
 
   private static final NetHud HUD = new NetHud();
   private static final ClientStats CLIENT = new ClientStats();

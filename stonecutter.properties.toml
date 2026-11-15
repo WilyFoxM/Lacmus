@@ -24,3 +24,19 @@ deps.neoforge = "26.2.0.93"
 mod.mc_compat = "[26.2, 26.3)"
 deps.forge = "26.2-65.1.6"
 deps.forge_major = "65"
+
+["26.3"]
+mod.mc_releases = ["26.3"]
+
+["fabric-quilt"."26.3"]
+mod.mc_compat = "~26.3"
+deps.fabric_api = "0.166.2+26.3"
+
+[neoforge."26.3"]
+mod.mc_compat = "[26.3, 26.4)"
+deps.neoforge = "26.3.0.103"
+
+[forge."26.3"]
+mod.mc_compat = "[26.3, 26.4)"
+deps.forge = "26.3-66.1.8"
+deps.forge_major = "66"

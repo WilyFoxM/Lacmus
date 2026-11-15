@@ -1,6 +1,5 @@
 package ru.wilyfox.lacmus.gui;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -208,8 +207,6 @@ final class SettingRow extends Button {
   }
 
   private static boolean shiftHeld() {
-    var window = Minecraft.getInstance().getWindow();
-    return InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT)
-        || InputConstants.isKeyDown(window, org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT);
+    return Minecraft.getInstance().hasShiftDown();
   }
 }
