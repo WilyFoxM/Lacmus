@@ -1,12 +1,16 @@
 package ru.wilyfox.lacmus.hud;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 import ru.wilyfox.lacmus.core.HudSettings;
+import ru.wilyfox.lacmus.core.HudSignature;
 import ru.wilyfox.lacmus.core.NetFormat;
 import ru.wilyfox.lacmus.core.NetView;
 
@@ -27,8 +31,10 @@ import ru.wilyfox.lacmus.core.NetView;
  * round trip, the pause is shown on its own: {@code rtt — no data 8.0 s}. A line that reports a
  * problem on its side turns entirely to the alarm colour, unless alarms are off.
  *
- * <p>What to show is decided by {@link NetView} and {@link HudSettings}; the lines are rebuilt once
- * per client tick and a frame only draws them.
+ * <p>What to show is decided by {@link NetView} and {@link HudSettings}. Once per client tick the
+ * HUD compares the {@link HudSignature} of what it would show with the last one and rebuilds its
+ * lines only when they differ, or when the language changed; a frame draws the prepared text and
+ * makes none.
  */
 public final class NetHud {
   private static final String KEY = "hud.lacmus.";
@@ -38,9 +44,22 @@ public final class NetHud {
   private static final String GAP = "  ";
 
   private final List<Component> lines = new ArrayList<>(3);
+  private final List<FormattedCharSequence> drawn = new ArrayList<>(3);
+  private long[] signature = new long[HudSignature.LENGTH];
+  private long[] shown = new long[HudSignature.LENGTH];
+  private Language language;
   private int width;
 
   public void update(Font font, NetView view, HudSettings settings) {
+    HudSignature.fill(view, settings, signature);
+    Language current = Language.getInstance();
+    if (!drawn.isEmpty() && current == language && Arrays.equals(signature, shown)) {
+      return;
+    }
+    long[] swap = shown;
+    shown = signature;
+    signature = swap;
+    language = current;
     lines.clear();
     boolean alarms = settings.alarms;
     if (settings.mode == HudSettings.Mode.EASY) {
@@ -58,25 +77,30 @@ public final class NetHud {
         lines.add(alarms && view.tickAlarm() ? alarm(server) : server);
       }
     }
+    drawn.clear();
     width = 0;
     for (Component line : lines) {
-      width = Math.max(width, font.width(line));
+      FormattedCharSequence text = line.getVisualOrderText();
+      drawn.add(text);
+      width = Math.max(width, font.width(text));
     }
   }
 
   public void reset() {
     lines.clear();
+    drawn.clear();
+    language = null;
     width = 0;
   }
 
   public void extract(GuiGraphicsExtractor graphics, Font font, HudSettings settings) {
-    if (lines.isEmpty()) {
+    if (drawn.isEmpty()) {
       return;
     }
     float scale = settings.scale / 100f;
     int lineStep = font.lineHeight + LINE_GAP;
     int panelWidth = width + 2 * PADDING;
-    int panelHeight = lines.size() * lineStep - LINE_GAP + 2 * PADDING;
+    int panelHeight = drawn.size() * lineStep - LINE_GAP + 2 * PADDING;
     float left =
         switch (settings.anchor) {
           case TOP_LEFT, BOTTOM_LEFT -> MARGIN;
@@ -95,8 +119,8 @@ public final class NetHud {
       graphics.fill(0, 0, panelWidth, panelHeight, alpha << 24 | LacmusTheme.PANEL_RGB);
     }
     int y = PADDING;
-    for (Component line : lines) {
-      graphics.text(font, line, PADDING, y, LacmusTheme.TEXT_ARGB, false);
+    for (int i = 0; i < drawn.size(); i++) {
+      graphics.text(font, drawn.get(i), PADDING, y, LacmusTheme.TEXT_ARGB, false);
       y += lineStep;
     }
     graphics.pose().popMatrix();
