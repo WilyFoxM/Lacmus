@@ -104,8 +104,8 @@ Lacmus is a client-side mod: a server does not need it.
   that arrived.
 - On a real server, through a proxy that adds a set delay, the round trip moved by exactly that
   delay (+50 ms, +150 ms), and a stall turned the line red and counted down to the timeout.
-- Lacmus itself takes about 20 µs per frame for the HUD and 60 µs per client tick in the full
-  mode. It makes no allocations of its own per frame, and none per packet on the network side.
+- Lacmus itself takes about 20–25 µs per frame for the HUD and 60–70 µs per client tick in the
+  full mode. It makes no allocations of its own per frame, and none per packet on the network side.
 
 ## Compatibility
 
