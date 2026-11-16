@@ -97,10 +97,15 @@ public final class NetHud {
     if (drawn.isEmpty()) {
       return;
     }
-    float scale = settings.scale / 100f;
     int lineStep = font.lineHeight + LINE_GAP;
     int panelWidth = width + 2 * PADDING;
     int panelHeight = drawn.size() * lineStep - LINE_GAP + 2 * PADDING;
+    // A size too large for the window shrinks to fit it, so no line runs off the screen.
+    float fit =
+        Math.min(
+            (graphics.guiWidth() - 2f * MARGIN) / panelWidth,
+            (graphics.guiHeight() - 2f * MARGIN) / panelHeight);
+    float scale = Math.min(settings.scale / 100f, fit);
     float left =
         switch (settings.anchor) {
           case TOP_LEFT, BOTTOM_LEFT -> MARGIN;

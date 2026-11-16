@@ -79,7 +79,8 @@ Changes apply and save at once, in `config/lacmus.json`.
 
 - **General**: show the HUD; the mode, **Full** (every metric) or **Easy to read** (one line:
   fps, latency and jitter); the latency, **rtt** (the newest round trip) or **ping** (the mean
-  round trip of the last 5 seconds); the screen corner; the size; the background opacity.
+  round trip of the last 5 seconds); the screen corner; the size, which shrinks to fit a small
+  window; the background opacity.
 - **Metrics**: in the full mode, each part on or off: the longest frame, the client tick, the
   packet queue, the jitter, bytes, packets and the server line.
 - **Alarms**: red lines on or off, and when they turn red: packets waiting 250 ms, a client
