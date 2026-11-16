@@ -99,9 +99,9 @@ Lacmus is a client-side mod: a server does not need it.
 
 ## Accuracy and cost
 
-- With a known delay added on a local server, the round trip matched it within 0.6 ms, the
-  5-second ping within 0.3 ms and the jitter within 0.2 ms. A stall counts from the last packet
-  that arrived.
+- With a known delay added on a local server, the round trip matched it within 0.7 ms and the
+  5-second ping within 0.6 ms. With a jitter of ±20 or ±40 ms added, the jitter shown matched the
+  real one within 10 %. A stall counts from the last packet that arrived.
 - On a real server, through a proxy that adds a set delay, the round trip moved by exactly that
   delay (+50 ms, +150 ms), and a stall turned the line red and counted down to the timeout.
 - Lacmus itself takes about 20–25 µs per frame for the HUD and 60–70 µs per client tick in the
