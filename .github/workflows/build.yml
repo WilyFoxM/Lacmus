@@ -54,4 +54,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Lacmus
-          path: versions/*/build/libs/*.jar
+          path: |
+            versions/*/build/libs/*.jar
+            server-paper/build/libs/*.jar

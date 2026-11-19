@@ -40,6 +40,8 @@ public final class HudSettings {
   public static final int MAX_CLIENT_TICK_ALARM_MS = 200;
   public static final int MIN_TPS_ALARM_PERCENT = 50;
   public static final int MAX_TPS_ALARM_PERCENT = 100;
+  public static final int MIN_MSPT_ALARM_PERCENT = 50;
+  public static final int MAX_MSPT_ALARM_PERCENT = 100;
   public static final int MIN_PINGS_PER_SECOND = 1;
   public static final int MAX_PINGS_PER_SECOND = 5;
 
@@ -66,6 +68,9 @@ public final class HudSettings {
   public boolean showPackets = true;
   public boolean showServer = true;
 
+  /** The server's own tick rate and tick time, when the Lacmus plugin on the server sends them. */
+  public boolean showServerReport = true;
+
   // Alarms.
   public boolean alarms = true;
   public int queueAlarmMs = 250;
@@ -73,6 +78,11 @@ public final class HudSettings {
 
   /** The server line alarms below this share of the server's target tick rate. */
   public int tpsAlarmPercent = 90;
+
+  /**
+   * The server line alarms when the reported mean tick time reaches this share of a tick's time.
+   */
+  public int msptAlarmPercent = 90;
 
   // Network.
 
@@ -99,6 +109,7 @@ public final class HudSettings {
     clientTickAlarmMs =
         Math.clamp(clientTickAlarmMs, MIN_CLIENT_TICK_ALARM_MS, MAX_CLIENT_TICK_ALARM_MS);
     tpsAlarmPercent = Math.clamp(tpsAlarmPercent, MIN_TPS_ALARM_PERCENT, MAX_TPS_ALARM_PERCENT);
+    msptAlarmPercent = Math.clamp(msptAlarmPercent, MIN_MSPT_ALARM_PERCENT, MAX_MSPT_ALARM_PERCENT);
     pingsPerSecond = Math.clamp(pingsPerSecond, MIN_PINGS_PER_SECOND, MAX_PINGS_PER_SECOND);
   }
 

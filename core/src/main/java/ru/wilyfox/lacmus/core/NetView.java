@@ -40,7 +40,9 @@ public record NetView(
     boolean connectionAlarm,
     boolean tickAlarm,
     boolean queueAlarm,
-    boolean clientTickAlarm) {
+    boolean clientTickAlarm,
+    ServerReport serverReport,
+    boolean msptAlarm) {
 
   /** Whether the client's own line reports a problem. */
   public boolean clientAlarm() {
@@ -80,6 +82,22 @@ public record NetView(
       boolean memoryConnection,
       boolean paused,
       HudSettings settings) {
+    return of(probe, client, fps, memoryConnection, paused, settings, null);
+  }
+
+  /**
+   * As above, with the server plugin's latest report ({@code null} when there is none, or it is
+   * stale). The report is shown only when the settings ask for it; its mean tick time alarms the
+   * server line once it reaches the settings' share of the time one tick may take.
+   */
+  public static NetView of(
+      NetProbe probe,
+      ClientStats client,
+      int fps,
+      boolean memoryConnection,
+      boolean paused,
+      HudSettings settings,
+      ServerReport report) {
     ServerTicks ticks = probe.ticks();
     boolean localPause = memoryConnection && paused;
     double stall = localPause ? Double.NaN : probe.stallMillis();
@@ -119,6 +137,11 @@ public record NetView(
     boolean queueAlarm = queueMillis >= settings.queueAlarmMs;
     double clientTickMillis = client.ticks().meanMillis();
     boolean clientTickAlarm = clientTickMillis >= settings.clientTickAlarmMs;
+    ServerReport shown = settings.showServerReport && !memoryConnection ? report : null;
+    boolean msptAlarm =
+        shown != null
+            && !shown.frozen()
+            && shown.msptMean() >= shown.tickBudgetMillis() * settings.msptAlarmPercent / 100.0;
 
     return new NetView(
         fps,
@@ -143,6 +166,8 @@ public record NetView(
         stalled,
         tickAlarm,
         queueAlarm,
-        clientTickAlarm);
+        clientTickAlarm,
+        shown,
+        msptAlarm);
   }
 }

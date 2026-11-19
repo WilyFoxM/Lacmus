@@ -4,12 +4,15 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import ru.wilyfox.lacmus.Lacmus;
 import ru.wilyfox.lacmus.LacmusClient;
+import ru.wilyfox.lacmus.net.ServerReportPayload;
 
 /** Fabric adapter: wires loader events to the loader-neutral code. */
 public final class LacmusFabric implements ClientModInitializer {
@@ -29,6 +32,11 @@ public final class LacmusFabric implements ClientModInitializer {
     ClientPlayConnectionEvents.DISCONNECT.register(
         (listener, minecraft) -> LacmusClient.onDisconnect());
     ClientTickEvents.END_CLIENT_TICK.register(LacmusClient::onEndTick);
+    PayloadTypeRegistry.clientboundPlay()
+        .register(ServerReportPayload.TYPE, ServerReportPayload.CODEC);
+    ClientPlayNetworking.registerGlobalReceiver(
+        ServerReportPayload.TYPE,
+        (payload, context) -> LacmusClient.onServerReport(payload.data()));
     HudElementRegistry.attachElementBefore(
         VanillaHudElements.CHAT,
         LacmusClient.HUD_ID,
