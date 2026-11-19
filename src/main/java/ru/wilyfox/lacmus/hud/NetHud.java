@@ -13,6 +13,7 @@ import ru.wilyfox.lacmus.core.HudSettings;
 import ru.wilyfox.lacmus.core.HudSignature;
 import ru.wilyfox.lacmus.core.NetFormat;
 import ru.wilyfox.lacmus.core.NetView;
+import ru.wilyfox.lacmus.core.ServerReport;
 
 /**
  * The HUD, in the spirit of {@code net_graph}. The full mode has one line per side of the game:
@@ -74,7 +75,7 @@ public final class NetHud {
       lines.add(alarms && view.connectionAlarm() ? alarm(network) : network);
       if (settings.showServer) {
         Component server = serverLine(view);
-        lines.add(alarms && view.tickAlarm() ? alarm(server) : server);
+        lines.add(alarms && (view.tickAlarm() || view.msptAlarm()) ? alarm(server) : server);
       }
     }
     drawn.clear();
@@ -217,10 +218,10 @@ public final class NetHud {
     }
   }
 
-  /** The server: how fast it ticks. */
+  /** The server: how fast it ticks, and what the server plugin reports about itself. */
   private static Component serverLine(NetView view) {
     MutableComponent line = label("tps").append(" ");
-    return line.append(
+    line.append(
         switch (view.tick()) {
           case ESTIMATE -> {
             String estimate = NetFormat.ticks(view.ticksPerSecond());
@@ -234,6 +235,20 @@ public final class NetHud {
           case LATE -> text("tps.late", NetFormat.seconds(view.tickLateMillis()));
           case UNKNOWN -> unknown();
         });
+    ServerReport report = view.serverReport();
+    if (report != null) {
+      line.append(GAP).append(label("server")).append(" ");
+      String tps = NetFormat.ticks(report.ticksPerSecond());
+      line.append(tps == null ? unknown() : number(tps));
+      line.append(GAP).append(label("mspt")).append(" ");
+      String mean = NetFormat.millis(report.msptMean());
+      line.append(mean == null ? unknown() : text("unit.ms", mean));
+      String max = NetFormat.millis(report.msptMax());
+      if (max != null) {
+        line.append(" ").append(text("frame_max", max));
+      }
+    }
+    return line;
   }
 
   private static Component alarm(Component line) {

@@ -41,4 +41,7 @@ stonecutter {
 // Pure-Java metrics core, shared by every node; no Minecraft or loader on its classpath.
 include("core")
 
+// The optional server plugin for Paper; outside Stonecutter, with its own Paper API version.
+include("server-paper")
+
 rootProject.name = "Lacmus"

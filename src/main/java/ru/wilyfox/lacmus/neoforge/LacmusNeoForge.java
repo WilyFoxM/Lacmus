@@ -12,8 +12,10 @@ import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import ru.wilyfox.lacmus.Lacmus;
 import ru.wilyfox.lacmus.LacmusClient;
+import ru.wilyfox.lacmus.net.ServerReportPayload;
 
 /** NeoForge adapter: wires loader events to the loader-neutral code. */
 @Mod(value = Lacmus.MOD_ID, dist = Dist.CLIENT)
@@ -35,6 +37,18 @@ public final class LacmusNeoForge {
                 VanillaGuiLayers.CHAT,
                 LacmusClient.HUD_ID,
                 (graphics, deltaTracker) -> LacmusClient.extractHud(graphics)));
+
+    // Optional: servers without the Lacmus plugin never send it.
+    modBus.addListener(
+        RegisterPayloadHandlersEvent.class,
+        event ->
+            event
+                .registrar("1")
+                .optional()
+                .playToClient(
+                    ServerReportPayload.TYPE,
+                    ServerReportPayload.CODEC,
+                    (payload, context) -> LacmusClient.onServerReport(payload.data())));
 
     NeoForge.EVENT_BUS.addListener(
         ClientPlayerNetworkEvent.LoggingIn.class,

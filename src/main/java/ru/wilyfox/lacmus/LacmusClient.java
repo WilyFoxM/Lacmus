@@ -16,6 +16,7 @@ import ru.wilyfox.lacmus.core.HudSettings;
 import ru.wilyfox.lacmus.core.NetProbe;
 import ru.wilyfox.lacmus.core.NetView;
 import ru.wilyfox.lacmus.core.QueueDelay;
+import ru.wilyfox.lacmus.core.ServerReports;
 import ru.wilyfox.lacmus.gui.LacmusScreen;
 import ru.wilyfox.lacmus.hud.NetHud;
 import ru.wilyfox.lacmus.net.NetTaps;
@@ -24,8 +25,9 @@ import ru.wilyfox.lacmus.net.Pinger;
 /**
  * Loader-neutral client logic. Loader adapters call {@link #init}, register {@link #KEY_CATEGORY},
  * {@link #OPEN_KEY}, {@link #TOGGLE_KEY} and the HUD element {@link #HUD_ID}, and forward joins,
- * disconnects, client ticks and HUD drawing here. Everything runs on the client thread, except what
- * {@link NetTaps} puts on the network thread.
+ * disconnects, client ticks and HUD drawing here, and hand over the server plugin's reports ({@link
+ * #onServerReport}). Everything runs on the client thread, except what {@link NetTaps} puts on the
+ * network thread and the reports, which may arrive on either.
  */
 public final class LacmusClient {
   public static final Identifier HUD_ID = Identifier.fromNamespaceAndPath(Lacmus.MOD_ID, "net");
@@ -47,8 +49,10 @@ public final class LacmusClient {
   private static final NetHud HUD = new NetHud();
   private static final ClientStats CLIENT = new ClientStats();
   private static final Pinger PINGER = new Pinger();
+  private static final ServerReports SERVER_REPORTS = new ServerReports();
 
-  private static NetProbe probe;
+  // Volatile: the server plugin's reports may arrive on the network thread and check it.
+  private static volatile NetProbe probe;
   private static String version = "";
 
   private LacmusClient() {}
@@ -77,11 +81,28 @@ public final class LacmusClient {
     NetTaps.install(connection, probe);
     HUD.reset();
     PINGER.reset();
+    SERVER_REPORTS.clear();
   }
 
   public static void onDisconnect() {
     probe = null;
     HUD.reset();
+    SERVER_REPORTS.clear();
+  }
+
+  /**
+   * A report from the Lacmus plugin on the server; any thread. One still on its way when the client
+   * leaves is dropped, so the report does not outlive the connection.
+   */
+  public static void onServerReport(byte[] payload) {
+    if (probe != null) {
+      SERVER_REPORTS.accept(payload, System.nanoTime());
+    }
+  }
+
+  /** The server plugin's latest reports. */
+  public static ServerReports serverReports() {
+    return SERVER_REPORTS;
   }
 
   public static void onEndTick(Minecraft minecraft) {
@@ -119,7 +140,14 @@ public final class LacmusClient {
     if (settings.visible) {
       boolean memory = listener.getConnection().isMemoryConnection();
       NetView view =
-          NetView.of(current, CLIENT, minecraft.getFps(), memory, minecraft.isPaused(), settings);
+          NetView.of(
+              current,
+              CLIENT,
+              minecraft.getFps(),
+              memory,
+              minecraft.isPaused(),
+              settings,
+              SERVER_REPORTS.current(now));
       HUD.update(minecraft.font, view, settings);
     }
   }

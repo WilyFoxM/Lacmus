@@ -37,7 +37,7 @@ dependencies {
 }
 
 val javaSources = fileTree(rootDir) {
-    include("src/**/*.java", "core/src/**/*.java")
+    include("src/**/*.java", "core/src/**/*.java", "server-paper/src/**/*.java")
     // Version seams hold Stonecutter conditions (`//? if`), which google-java-format would turn
     // into plain comments (`// ? if`).
     exclude("src/main/java/ru/wilyfox/lacmus/compat/**")

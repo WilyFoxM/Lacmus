@@ -11,7 +11,7 @@ package ru.wilyfox.lacmus.core;
  */
 public final class HudSignature {
   /** Length of the array {@link #fill} writes. */
-  public static final int LENGTH = 25;
+  public static final int LENGTH = 31;
 
   private HudSignature() {}
 
@@ -28,13 +28,15 @@ public final class HudSignature {
             | bit(settings.showBytes, 4)
             | bit(settings.showPackets, 5)
             | bit(settings.showServer, 6)
-            | bit(settings.alarms, 7);
+            | bit(settings.alarms, 7)
+            | bit(settings.showServerReport, 8);
     out[i++] =
         bit(view.connectionAlarm(), 0)
             | bit(view.tickAlarm(), 1)
             | bit(view.queueAlarm(), 2)
             | bit(view.clientTickAlarm(), 3)
-            | bit(view.bytesKnown(), 4);
+            | bit(view.bytesKnown(), 4)
+            | bit(view.msptAlarm(), 5);
     out[i++] = view.fps();
     out[i++] = view.rtt().ordinal();
     out[i++] = NetFormat.millisKey(view.rttMillis());
@@ -56,6 +58,13 @@ public final class HudSignature {
     out[i++] = settings.queueAlarmMs;
     out[i++] = settings.clientTickAlarmMs;
     out[i++] = settings.tpsAlarmPercent;
+    out[i++] = settings.msptAlarmPercent;
+    ServerReport report = view.serverReport();
+    out[i++] = report == null ? 0 : report.frozen() ? 2 : 1;
+    out[i++] = report == null ? 0 : NetFormat.tickRateKey(report.targetTickRate());
+    out[i++] = report == null ? 0 : NetFormat.ticksKey(report.ticksPerSecond());
+    out[i++] = report == null ? 0 : NetFormat.millisKey(report.msptMean());
+    out[i++] = report == null ? 0 : NetFormat.millisKey(report.msptMax());
   }
 
   private static long bit(boolean flag, int position) {

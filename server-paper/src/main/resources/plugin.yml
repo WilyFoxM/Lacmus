@@ -1,0 +1,7 @@
+name: Lacmus
+version: "${version}"
+main: ru.wilyfox.lacmus.paper.LacmusPaper
+api-version: "26.1"
+description: Reports the server's own tick rate and tick times to players who use the Lacmus mod.
+author: WilyFox
+website: https://github.com/WilyFoxM/Lacmus

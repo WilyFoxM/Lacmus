@@ -2,6 +2,8 @@ package ru.wilyfox.lacmus.forge;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.Identifier;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -11,8 +13,10 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.ChannelBuilder;
 import ru.wilyfox.lacmus.Lacmus;
 import ru.wilyfox.lacmus.LacmusClient;
+import ru.wilyfox.lacmus.core.ServerReport;
 
 /**
  * Forge adapter: wires loader events to the loader-neutral code. Lacmus is client-side only; on a
@@ -46,5 +50,19 @@ public final class LacmusForge {
     ClientPlayerNetworkEvent.LoggingOut.BUS.addListener(event -> LacmusClient.onDisconnect());
     TickEvent.ClientTickEvent.Post.BUS.addListener(
         event -> LacmusClient.onEndTick(Minecraft.getInstance()));
+    // Optional: servers without the Lacmus plugin never send it. The payload is the raw report.
+    ChannelBuilder.named(Identifier.parse(ServerReport.CHANNEL))
+        .optional()
+        .eventNetworkChannel()
+        .addListener(
+            event -> {
+              FriendlyByteBuf buffer = event.getPayload();
+              if (buffer != null) {
+                byte[] data = new byte[buffer.readableBytes()];
+                buffer.readBytes(data);
+                LacmusClient.onServerReport(data);
+              }
+              event.getSource().setPacketHandled(true);
+            });
   }
 }
