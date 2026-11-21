@@ -64,10 +64,15 @@ Lacmus times the game's requests and sends none.
   (`/tick rate`), it is shown too: `≈9.9 of 10`. **frozen** when the server froze its ticks,
   **late** when its next time is overdue, **paused** in a paused single-player game. Unknown
   during a stall: then the connection, not the server, decides what arrives.
+- **server** and **mspt**: only with the optional [server plugin](#server-plugin-optional). The
+  server's own count of ticks per second over the last 5 seconds, and how long its last 20 ticks
+  took on average and at most: `server 20.0  mspt 2.6 ms (max 3.1 ms)`. These are the server's
+  own numbers, shown next to the estimate, not instead of it.
 
 A line that reports a problem on its side turns red: the client line when packets wait 250 ms or
 more or the client tick takes 50 ms or more, the connection line during a stall or a pause, the
-server line when the server falls below 90 % of its rate or its time is late. **—** means the
+server line when the server falls below 90 % of its rate or its time is late, or, with the
+plugin, when its mean tick time reaches 90 % of the time one tick may take. **—** means the
 value is unknown.
 
 ## Settings
@@ -80,9 +85,9 @@ Changes apply and save at once, in `config/lacmus.json`.
   round trip of the last 5 seconds); the screen corner; the size, which shrinks to fit a small
   window; the background opacity.
 - **Metrics**: in the full mode, each part on or off: the longest frame, the client tick, the
-  packet queue, the jitter, bytes, packets and the server line.
+  packet queue, the jitter, bytes, packets, the server line and the server's own numbers.
 - **Alarms**: red lines on or off, and when they turn red: packets waiting 250 ms, a client
-  tick of 50 ms, a server below 90 % of its rate.
+  tick of 50 ms, a server below 90 % of its rate, a server tick time of 90 % of a tick.
 - **Network**: the HUD's own ping requests on or off, and how many a second (2 by default).
   Off, the latency is known only while the F3 network chart is open.
 
@@ -95,7 +100,18 @@ Changes apply and save at once, in `config/lacmus.json`.
   newer for 26.3
 - Forge 62 or newer for 26.1.x, 65 or newer for 26.2, 66 or newer for 26.3
 
-Lacmus is a client-side mod: a server does not need it.
+Lacmus is a client-side mod: a server does not need it. The server plugin is optional.
+
+## Server plugin (optional)
+
+`lacmus-server-paper-1.1.0.jar` goes into the `plugins` folder of a Paper server, 26.1.2 or newer,
+or of a server built on Paper, such as Purpur. Once a second it sends a short report of its own
+tick rate and tick times to players who have Lacmus; others get nothing. It adds no commands and
+no settings, and stores nothing.
+
+- Behind a Velocity proxy, put it on each server behind the proxy; the proxy needs nothing.
+- It does not run on Spigot, which has no way to time server ticks, or on Folia, which has no
+  single server tick rate. There Lacmus keeps showing its own estimate.
 
 ## Accuracy and cost
 
