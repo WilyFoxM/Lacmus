@@ -33,6 +33,8 @@ class HudSignatureTest {
         alarm,
         false,
         false,
+        false,
+        null,
         false);
   }
 
@@ -81,5 +83,39 @@ class HudSignatureTest {
     }
     long allocated = threads.getCurrentThreadAllocatedBytes() - before;
     assertEquals(0, allocated, "bytes allocated by 1000 signatures");
+  }
+
+  @Test
+  void serverReportChangesTheSignature() {
+    HudSettings settings = new HudSettings();
+    NetView base = view(42.1, 12_340, 144, false);
+    NetView reported =
+        new NetView(
+            base.fps(),
+            base.rtt(),
+            base.rttMillis(),
+            base.pingMillis(),
+            base.jitterMillis(),
+            base.stallMillis(),
+            base.timeoutInMillis(),
+            base.tick(),
+            base.ticksPerSecond(),
+            base.targetTickRate(),
+            base.tickLateMillis(),
+            base.queueMillis(),
+            base.frameMaxMillis(),
+            base.clientTickMillis(),
+            base.bytesKnown(),
+            base.inboundBytesPerSecond(),
+            base.outboundBytesPerSecond(),
+            base.inboundPacketsPerSecond(),
+            base.outboundPacketsPerSecond(),
+            base.connectionAlarm(),
+            base.tickAlarm(),
+            base.queueAlarm(),
+            base.clientTickAlarm(),
+            new ServerReport(20, false, 20, 12.2, 31),
+            false);
+    assertFalse(Arrays.equals(signature(base, settings), signature(reported, settings)));
   }
 }

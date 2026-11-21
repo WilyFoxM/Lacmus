@@ -234,4 +234,70 @@ class NetViewTest {
     assertEquals(60, view.rttMillis(), 1e-9);
     assertEquals(50, view.pingMillis(), 1e-9);
   }
+
+  @Test
+  void serverReportIsShownAndAlarmsOnLongTicks() {
+    HudSettings settings = new HudSettings();
+    NetProbe probe = healthy(20, 6000);
+    NetView light =
+        NetView.of(
+            probe,
+            new ClientStats(),
+            144,
+            false,
+            false,
+            settings,
+            new ServerReport(20, false, 20, 12, 31));
+    assertEquals(12, light.serverReport().msptMean(), 1e-9);
+    assertFalse(light.msptAlarm());
+    NetView heavy =
+        NetView.of(
+            probe,
+            new ClientStats(),
+            144,
+            false,
+            false,
+            settings,
+            new ServerReport(20, false, 19.8, 46, 70));
+    assertTrue(heavy.msptAlarm(), "46 ms is past 90 % of a 50 ms tick");
+    NetView slowRate =
+        NetView.of(
+            probe,
+            new ClientStats(),
+            144,
+            false,
+            false,
+            settings,
+            new ServerReport(10, false, 10, 80, 90));
+    assertFalse(slowRate.msptAlarm(), "at 10 tps a tick may take 100 ms");
+  }
+
+  @Test
+  void frozenServerDoesNotAlarmOnTickTime() {
+    NetView view =
+        NetView.of(
+            healthy(20, 6000),
+            new ClientStats(),
+            144,
+            false,
+            false,
+            new HudSettings(),
+            new ServerReport(20, true, 20, 60, 70));
+    assertFalse(view.msptAlarm());
+  }
+
+  @Test
+  void serverReportCanBeHiddenAndIsIgnoredInSinglePlayer() {
+    HudSettings off = new HudSettings();
+    off.showServerReport = false;
+    ServerReport report = new ServerReport(20, false, 20, 46, 70);
+    NetView hidden =
+        NetView.of(healthy(20, 6000), new ClientStats(), 144, false, false, off, report);
+    assertEquals(null, hidden.serverReport());
+    assertFalse(hidden.msptAlarm());
+    NetView local =
+        NetView.of(
+            healthy(20, 6000), new ClientStats(), 144, true, false, new HudSettings(), report);
+    assertEquals(null, local.serverReport());
+  }
 }

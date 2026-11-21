@@ -107,6 +107,8 @@ final class SettingsCatalog {
     options.add(metric("show_bytes", () -> c().showBytes, v -> c().showBytes = v));
     options.add(metric("show_packets", () -> c().showPackets, v -> c().showPackets = v));
     options.add(metric("show_server", () -> c().showServer, v -> c().showServer = v));
+    options.add(
+        metric("show_server_report", () -> c().showServerReport, v -> c().showServerReport = v));
 
     options.add(toggle("alarms", Page.ALARMS, () -> c().alarms, v -> c().alarms = v));
     options.add(
@@ -140,6 +142,17 @@ final class SettingsCatalog {
             v -> c().tpsAlarmPercent = v,
             HudSettings.MIN_TPS_ALARM_PERCENT,
             HudSettings.MAX_TPS_ALARM_PERCENT,
+            5,
+            SettingsCatalog::alarmsOff));
+    options.add(
+        number(
+            "mspt_alarm",
+            Page.ALARMS,
+            "percent",
+            () -> c().msptAlarmPercent,
+            v -> c().msptAlarmPercent = v,
+            HudSettings.MIN_MSPT_ALARM_PERCENT,
+            HudSettings.MAX_MSPT_ALARM_PERCENT,
             5,
             SettingsCatalog::alarmsOff));
 
